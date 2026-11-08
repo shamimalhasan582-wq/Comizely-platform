@@ -1,0 +1,6 @@
+{
+  "name": "Comizely - E-Commerce Management System",
+  "description": "Comprehensive e-commerce management suite featuring order tracking, inventory, purchases, customer directory, financial reports, and multi-branch management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
