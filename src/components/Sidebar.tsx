@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={`relative bg-white flex flex-col justify-between transition-all duration-300 ease-in-out select-none z-20 ${
         collapsed ? 'w-20' : 'w-64'
-      } h-screen sticky top-0 border-r border-slate-100 shadow-[1px_0_4px_rgba(0,0,0,0.02)]`}
+      } h-screen sticky top-0`}
     >
       <div className="flex-1 flex flex-col min-h-0">
         {/* Brand Header */}

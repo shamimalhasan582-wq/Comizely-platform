@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="h-18 bg-white px-6 flex items-center justify-between sticky top-0 z-10">
+    <header className="h-18 bg-white px-6 flex items-center justify-between shrink-0 z-10">
       {/* Search Input Bar (rounded pill like screenshot) */}
       <div className="w-80 md:w-96 relative">
         <div className="relative flex items-center">
