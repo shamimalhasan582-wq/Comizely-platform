@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import {
-  LayoutDashboard,
-  FolderKanban,
-  Package,
+  Home,
+  ListChecks,
+  Box,
   ShoppingCart,
-  Users,
-  CheckSquare,
+  User,
+  ClipboardList,
   Landmark,
-  BarChart3,
+  FileBarChart2,
   Store,
   Settings,
   ChevronRight,
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ExternalLink,
 } from 'lucide-react';
 import { ActiveNav } from '../types';
 
@@ -23,8 +19,8 @@ interface SidebarProps {
   setActiveNav: (nav: ActiveNav) => void;
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
-  onOpenStorePreview: () => void;
-  orderCounts: {
+  onOpenStorePreview?: () => void;
+  orderCounts?: {
     all: number;
     pending: number;
     followUp: number;
@@ -38,26 +34,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveNav,
   collapsed,
   setCollapsed,
-  onOpenStorePreview,
 }) => {
   const [ordersExpanded, setOrdersExpanded] = useState(true);
-  const [purchasesExpanded, setPurchasesExpanded] = useState(true);
-  const [customersExpanded, setCustomersExpanded] = useState(true);
+  const [purchasesExpanded, setPurchasesExpanded] = useState(false);
+  const [customersExpanded, setCustomersExpanded] = useState(false);
 
-  const isOrderSubItem =
+  const isOrderActive =
     activeNav === 'orders' ||
     activeNav === 'create-order' ||
     activeNav === 'order-return' ||
     activeNav === 'incomplete-orders' ||
     activeNav === 'draft-orders';
 
-  const isPurchaseSubItem =
+  const isPurchaseActive =
     activeNav === 'purchases' ||
     activeNav === 'create-purchase' ||
     activeNav === 'purchase-returns' ||
     activeNav === 'suppliers';
 
-  const isCustomerSubItem =
+  const isCustomerActive =
     activeNav === 'customers' ||
     activeNav === 'customer-tags';
 
@@ -65,75 +60,104 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={`relative bg-white flex flex-col justify-between transition-all duration-300 ease-in-out select-none z-20 ${
         collapsed ? 'w-20' : 'w-64'
-      } h-screen sticky top-0`}
+      } h-screen sticky top-0 border-r border-slate-100 shadow-[1px_0_4px_rgba(0,0,0,0.02)]`}
     >
-      {/* Top Header / Brand */}
-      <div>
-        <div className="h-18 px-5 flex items-center justify-between">
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Brand Header */}
+        <div className="h-18 px-5 flex items-center justify-between shrink-0">
           <div
             onClick={() => setActiveNav('dashboard')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            {/* Comizely Logo Ribbon / Folded Icon */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-violet-500 flex items-center justify-center shadow-md shadow-purple-500/20 text-white font-bold text-xl group-hover:scale-105 transition-transform">
+            {/* Comizely Figma Geometric Logo */}
+            <div className="w-8 h-8 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg
-                viewBox="0 0 24 24"
+                viewBox="0 0 38 34"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-white"
+                className="w-8 h-8"
               >
+                <defs>
+                  <linearGradient id="comizelyLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#6951F7" />
+                    <stop offset="50%" stopColor="#5D3BEB" />
+                    <stop offset="100%" stopColor="#4824DE" />
+                  </linearGradient>
+                </defs>
                 <path
-                  d="M4 14.5L12 3L20 14.5L12 21L4 14.5Z"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  d="M11 2H28L34 8L27 15L20 8H13L4 17L11 24H18L26 16L32 22L24 30L20 34H11L1 24V17L11 2Z"
+                  fill="url(#comizelyLogoGrad)"
                 />
                 <path
-                  d="M12 3V21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeDasharray="2 2"
+                  d="M26 15L33 22L27 28H15L10 23L16 17H24L26 15Z"
+                  fill="url(#comizelyLogoGrad)"
+                  fillOpacity="0.92"
                 />
               </svg>
             </div>
+
             {!collapsed && (
-              <span className="font-bold text-xl tracking-tight text-slate-900 group-hover:text-purple-600 transition-colors">
+              <span className="font-bold text-[21px] tracking-tight text-slate-900 group-hover:text-[#5D3BEB] transition-colors">
                 Comizely
               </span>
             )}
           </div>
 
+          {/* Sidebar Toggle Icon matching Figma */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="4" />
+              <path d="M15 3v18" />
+            </svg>
           </button>
         </div>
 
-        {/* Navigation list */}
-        <div className="px-3 py-4 space-y-6 overflow-y-auto max-h-[calc(100vh-160px)] scrollbar-thin">
+        {/* Navigation Items List */}
+        <div className="flex-1 px-3 py-2 space-y-5 overflow-y-auto scrollbar-thin">
           {/* Dashboard */}
           <div>
             <button
               onClick={() => setActiveNav('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+              title={collapsed ? 'Dashboard' : undefined}
+              className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                 activeNav === 'dashboard'
-                  ? 'bg-purple-50 text-purple-700 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 ${activeNav === 'dashboard' ? 'text-purple-600' : 'text-slate-400'}`} />
-              {!collapsed && <span>Dashboard</span>}
+              {activeNav === 'dashboard' && (
+                <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+              )}
+              <div className="flex items-center gap-3.5">
+                <Home
+                  className={`w-5 h-5 shrink-0 ${
+                    activeNav === 'dashboard' ? 'text-[#6355FF]' : 'text-slate-700'
+                  }`}
+                  strokeWidth={1.75}
+                />
+                {!collapsed && <span>Dashboard</span>}
+              </div>
             </button>
           </div>
 
           {/* Group: Management */}
           <div>
             {!collapsed && (
-              <div className="px-3 mb-2 text-[11px] font-semibold text-slate-400 tracking-wider">
+              <div className="px-3.5 mb-2 text-[13px] font-medium text-slate-400 select-none">
                 Management
               </div>
             )}
@@ -149,98 +173,158 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       setOrdersExpanded(true);
                     } else {
                       setOrdersExpanded(!ordersExpanded);
-                      if (!isOrderSubItem) setActiveNav('orders');
+                      if (!isOrderActive) setActiveNav('orders');
                     }
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
-                    isOrderSubItem
-                      ? 'bg-purple-50/80 text-purple-700 font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  title={collapsed ? 'Orders' : undefined}
+                  className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
+                    isOrderActive
+                      ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <FolderKanban
-                      className={`w-5 h-5 ${isOrderSubItem ? 'text-purple-600' : 'text-slate-400'}`}
+                  {isOrderActive && (
+                    <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                  )}
+                  <div className="flex items-center gap-3.5">
+                    <ListChecks
+                      className={`w-5 h-5 shrink-0 ${
+                        isOrderActive ? 'text-[#6355FF]' : 'text-slate-700'
+                      }`}
+                      strokeWidth={1.8}
                     />
                     {!collapsed && <span>Orders</span>}
                   </div>
                   {!collapsed && (
-                    <div className="text-slate-400">
-                      {ordersExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </div>
+                    <ChevronRight
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isOrderActive ? 'text-[#6355FF]' : 'text-slate-400'
+                      } ${ordersExpanded ? 'rotate-90' : ''}`}
+                      strokeWidth={1.8}
+                    />
                   )}
                 </button>
 
-                {/* Orders Nested Tree (matches screenshot connected dots) */}
+                {/* Submenu Tree: All Orders, Order Return, Incomplete Orders, Draft Orders */}
                 {!collapsed && ordersExpanded && (
-                  <div className="ml-5 pl-3 border-l-2 border-slate-100 my-1 space-y-1 relative">
-                    {/* All Orders */}
-                    <button
+                  <div className="relative pt-1 pb-1">
+                    {/* Item 1: All Orders (Active in screenshot) */}
+                    <div
                       onClick={() => setActiveNav('orders')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'orders'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      {/* Vertical line from top connector down through node to bottom */}
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      {/* Node & horizontal branch */}
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'orders' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'orders'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>All Orders</span>
-                    </button>
+                      >
+                        All Orders
+                      </span>
+                    </div>
 
-                    {/* Order Return */}
-                    <button
+                    {/* Item 2: Order Return */}
+                    <div
                       onClick={() => setActiveNav('order-return')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'order-return'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'order-return' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'order-return' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'order-return' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'order-return'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Order Return</span>
-                    </button>
+                      >
+                        Order Return
+                      </span>
+                    </div>
 
-                    {/* Incomplete Orders */}
-                    <button
+                    {/* Item 3: Incomplete Orders */}
+                    <div
                       onClick={() => setActiveNav('incomplete-orders')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'incomplete-orders'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'incomplete-orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'incomplete-orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'incomplete-orders' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'incomplete-orders'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Incomplete Orders</span>
-                    </button>
+                      >
+                        Incomplete Orders
+                      </span>
+                    </div>
 
-                    {/* Draft Orders */}
-                    <button
+                    {/* Item 4: Draft Orders (Last tree item, stops at node) */}
+                    <div
                       onClick={() => setActiveNav('draft-orders')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'draft-orders'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'draft-orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'draft-orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'draft-orders' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'draft-orders'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Draft Orders</span>
-                    </button>
+                      >
+                        Draft Orders
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -248,186 +332,271 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Products */}
               <button
                 onClick={() => setActiveNav('products')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'Products' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'products'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Package className={`w-5 h-5 ${activeNav === 'products' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'products' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <Box
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'products' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>Products</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'products' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
 
-              {/* Purchases Expandable Group */}
+              {/* Purchases */}
               <div>
                 <button
                   onClick={() => {
-                    if (!isPurchaseSubItem) {
+                    if (collapsed) {
+                      setCollapsed(false);
                       setActiveNav('purchases');
                       setPurchasesExpanded(true);
                     } else {
                       setPurchasesExpanded(!purchasesExpanded);
+                      if (!isPurchaseActive) setActiveNav('purchases');
                     }
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
-                    isPurchaseSubItem
-                      ? 'bg-purple-50 text-purple-700 font-semibold'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  title={collapsed ? 'Purchases' : undefined}
+                  className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
+                    isPurchaseActive
+                      ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  {isPurchaseActive && (
+                    <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                  )}
+                  <div className="flex items-center gap-3.5">
                     <ShoppingCart
-                      className={`w-5 h-5 ${
-                        isPurchaseSubItem ? 'text-purple-600' : 'text-slate-400'
+                      className={`w-5 h-5 shrink-0 ${
+                        isPurchaseActive ? 'text-[#6355FF]' : 'text-slate-700'
                       }`}
+                      strokeWidth={1.75}
                     />
                     {!collapsed && <span>Purchases</span>}
                   </div>
                   {!collapsed && (
-                    <div className="text-slate-400">
-                      {purchasesExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </div>
+                    <ChevronRight
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isPurchaseActive ? 'text-[#6355FF]' : 'text-slate-400'
+                      } ${purchasesExpanded ? 'rotate-90' : ''}`}
+                      strokeWidth={1.8}
+                    />
                   )}
                 </button>
 
-                {/* Purchases Nested Tree (matches screenshot connected dots) */}
+                {/* Purchases nested options if expanded */}
                 {!collapsed && purchasesExpanded && (
-                  <div className="ml-5 pl-3 border-l-2 border-slate-100 my-1 space-y-1 relative">
-                    {/* Purchases */}
-                    <button
+                  <div className="relative pt-1 pb-1">
+                    <div
                       onClick={() => setActiveNav('purchases')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'purchases' || activeNav === 'create-purchase'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'purchases' || activeNav === 'create-purchase'
+                              ? 'bg-[#6355FF]'
+                              : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'purchases' || activeNav === 'create-purchase'
+                              ? 'bg-[#6355FF]'
+                              : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
+                        className={`pl-8 text-[14px] transition-colors ${
                           activeNav === 'purchases' || activeNav === 'create-purchase'
-                            ? 'bg-purple-600 scale-125'
-                            : 'bg-slate-300'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Purchases</span>
-                    </button>
+                      >
+                        Purchases
+                      </span>
+                    </div>
 
-                    {/* Purchase Returns */}
-                    <button
+                    <div
                       onClick={() => setActiveNav('purchase-returns')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'purchase-returns'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'purchase-returns' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'purchase-returns' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
+                        className={`pl-8 text-[14px] transition-colors ${
                           activeNav === 'purchase-returns'
-                            ? 'bg-purple-600 scale-125'
-                            : 'bg-slate-300'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Purchase Returns</span>
-                    </button>
+                      >
+                        Purchase Returns
+                      </span>
+                    </div>
 
-                    {/* Suppliers */}
-                    <button
+                    <div
                       onClick={() => setActiveNav('suppliers')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'suppliers'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'suppliers' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'suppliers' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
+                        className={`pl-8 text-[14px] transition-colors ${
                           activeNav === 'suppliers'
-                            ? 'bg-purple-600 scale-125'
-                            : 'bg-slate-300'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Suppliers</span>
-                    </button>
+                      >
+                        Suppliers
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Customers Expandable Group */}
+              {/* Customers */}
               <div>
                 <button
                   onClick={() => {
-                    if (!isCustomerSubItem) {
+                    if (collapsed) {
+                      setCollapsed(false);
                       setActiveNav('customers');
                       setCustomersExpanded(true);
                     } else {
                       setCustomersExpanded(!customersExpanded);
+                      if (!isCustomerActive) setActiveNav('customers');
                     }
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
-                    isCustomerSubItem
-                      ? 'bg-purple-50 text-purple-700 font-semibold'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  title={collapsed ? 'Customers' : undefined}
+                  className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
+                    isCustomerActive
+                      ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Users className={`w-5 h-5 ${isCustomerSubItem ? 'text-purple-600' : 'text-slate-400'}`} />
+                  {isCustomerActive && (
+                    <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                  )}
+                  <div className="flex items-center gap-3.5">
+                    <User
+                      className={`w-5 h-5 shrink-0 ${
+                        isCustomerActive ? 'text-[#6355FF]' : 'text-slate-700'
+                      }`}
+                      strokeWidth={1.75}
+                    />
                     {!collapsed && <span>Customers</span>}
                   </div>
                   {!collapsed && (
-                    <div className="text-slate-400">
-                      {customersExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </div>
+                    <ChevronRight
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isCustomerActive ? 'text-[#6355FF]' : 'text-slate-400'
+                      } ${customersExpanded ? 'rotate-90' : ''}`}
+                      strokeWidth={1.8}
+                    />
                   )}
                 </button>
 
-                {/* Customers Nested Tree */}
+                {/* Customers nested options if expanded */}
                 {!collapsed && customersExpanded && (
-                  <div className="ml-5 pl-3 border-l-2 border-slate-100 my-1 space-y-1 relative">
-                    {/* All Customers */}
-                    <button
+                  <div className="relative pt-1 pb-1">
+                    <div
                       onClick={() => setActiveNav('customers')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'customers'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'customers' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'customers' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'customers' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'customers'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>All Customers</span>
-                    </button>
+                      >
+                        All Customers
+                      </span>
+                    </div>
 
-                    {/* Customer Tags */}
-                    <button
+                    <div
                       onClick={() => setActiveNav('customer-tags')}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors cursor-pointer text-left relative ${
-                        activeNav === 'customer-tags'
-                          ? 'text-purple-700 font-bold bg-purple-50/50'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
+                      className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
+                      <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
+                      <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
+                        <span
+                          className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
+                            activeNav === 'customer-tags' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                          }`}
+                        />
+                        <span
+                          className={`w-3.5 h-[1.5px] ${
+                            activeNav === 'customer-tags' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                          }`}
+                        />
+                      </div>
                       <span
-                        className={`w-2 h-2 rounded-full transition-transform ${
-                          activeNav === 'customer-tags' ? 'bg-purple-600 scale-125' : 'bg-slate-300'
+                        className={`pl-8 text-[14px] transition-colors ${
+                          activeNav === 'customer-tags'
+                            ? 'text-[#6355FF] font-medium'
+                            : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
-                      />
-                      <span>Customer Tags</span>
-                    </button>
+                      >
+                        Customer Tags
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -435,17 +604,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* My Tasks */}
               <button
                 onClick={() => setActiveNav('my-tasks')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'My Tasks' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'my-tasks'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <CheckSquare className={`w-5 h-5 ${activeNav === 'my-tasks' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'my-tasks' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <ClipboardList
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'my-tasks' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>My Tasks</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'my-tasks' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
             </div>
           </div>
@@ -453,39 +638,71 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Group: Finance */}
           <div>
             {!collapsed && (
-              <div className="px-3 mb-2 text-[11px] font-semibold text-slate-400 tracking-wider">
+              <div className="px-3.5 mb-2 text-[13px] font-medium text-slate-400 select-none">
                 Finance
               </div>
             )}
             <div className="space-y-1">
               <button
                 onClick={() => setActiveNav('accounts')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'Accounts' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'accounts'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Landmark className={`w-5 h-5 ${activeNav === 'accounts' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'accounts' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <Landmark
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'accounts' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>Accounts</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'accounts' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
 
               <button
                 onClick={() => setActiveNav('reports')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'Reports' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'reports'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <BarChart3 className={`w-5 h-5 ${activeNav === 'reports' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'reports' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <FileBarChart2
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'reports' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>Reports</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'reports' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
             </div>
           </div>
@@ -493,70 +710,75 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Group: Others */}
           <div>
             {!collapsed && (
-              <div className="px-3 mb-2 text-[11px] font-semibold text-slate-400 tracking-wider">
+              <div className="px-3.5 mb-2 text-[13px] font-medium text-slate-400 select-none">
                 Others
               </div>
             )}
             <div className="space-y-1">
               <button
                 onClick={() => setActiveNav('online-store')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'Online Store' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'online-store'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Store className={`w-5 h-5 ${activeNav === 'online-store' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'online-store' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <Store
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'online-store' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>Online Store</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'online-store' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
 
               <button
                 onClick={() => setActiveNav('settings')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all cursor-pointer ${
+                title={collapsed ? 'Setting' : undefined}
+                className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
                   activeNav === 'settings'
-                    ? 'bg-purple-50 text-purple-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
+                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Settings className={`w-5 h-5 ${activeNav === 'settings' ? 'text-purple-600' : 'text-slate-400'}`} />
+                {activeNav === 'settings' && (
+                  <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
+                )}
+                <div className="flex items-center gap-3.5">
+                  <Settings
+                    className={`w-5 h-5 shrink-0 ${
+                      activeNav === 'settings' ? 'text-[#6355FF]' : 'text-slate-700'
+                    }`}
+                    strokeWidth={1.75}
+                  />
                   {!collapsed && <span>Setting</span>}
                 </div>
-                {!collapsed && <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!collapsed && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      activeNav === 'settings' ? 'text-[#6355FF]' : 'text-slate-400'
+                    }`}
+                    strokeWidth={1.8}
+                  />
+                )}
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Store Switcher / Badge: Biponil.com (exact match from screenshot) */}
-      <div className="p-3 border-t border-slate-100">
-        <button
-          onClick={onOpenStorePreview}
-          title="Visit Online Store (Biponil.com)"
-          className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-gradient-to-r from-purple-50/70 to-indigo-50/70 hover:from-purple-100/80 hover:to-indigo-100/80 border border-purple-100/60 transition-all cursor-pointer group text-left"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            {/* Orange gradient icon badge as in screenshot */}
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0">
-              <span className="font-extrabold text-[13px]">B</span>
-            </div>
-            {!collapsed && (
-              <div className="truncate">
-                <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-purple-700 transition-colors">
-                  Biponil.com
-                </p>
-                <p className="text-[10px] text-slate-400 truncate">Live Storefront</p>
-              </div>
-            )}
-          </div>
-          {!collapsed && (
-            <ChevronRight className="w-4 h-4 text-purple-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
-          )}
-        </button>
       </div>
     </aside>
   );
