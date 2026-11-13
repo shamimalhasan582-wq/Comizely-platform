@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   ListChecks,
@@ -15,8 +16,8 @@ import {
 import { ActiveNav } from '../types';
 
 interface SidebarProps {
-  activeNav: ActiveNav;
-  setActiveNav: (nav: ActiveNav) => void;
+  activeNav?: ActiveNav;
+  setActiveNav?: (nav: ActiveNav) => void;
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
   onOpenStorePreview?: () => void;
@@ -30,31 +31,27 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  activeNav,
-  setActiveNav,
   collapsed,
   setCollapsed,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
+
+  const isDashboardActive = pathname === '/' || pathname.startsWith('/dashboard');
+  const isOrderActive = pathname.startsWith('/orders');
+  const isPurchaseActive = pathname.startsWith('/purchases') || pathname.startsWith('/suppliers');
+  const isCustomerActive = pathname.startsWith('/customers');
+  const isProductActive = pathname.startsWith('/products');
+  const isTaskActive = pathname.startsWith('/tasks') || pathname.startsWith('/my-tasks');
+  const isFinanceActive = pathname.startsWith('/accounts') || pathname.startsWith('/finance');
+  const isReportsActive = pathname.startsWith('/reports');
+  const isStoreActive = pathname.startsWith('/store') || pathname.startsWith('/online-store');
+  const isSettingsActive = pathname.startsWith('/settings');
+
   const [ordersExpanded, setOrdersExpanded] = useState(true);
   const [purchasesExpanded, setPurchasesExpanded] = useState(false);
   const [customersExpanded, setCustomersExpanded] = useState(false);
-
-  const isOrderActive =
-    activeNav === 'orders' ||
-    activeNav === 'create-order' ||
-    activeNav === 'order-return' ||
-    activeNav === 'incomplete-orders' ||
-    activeNav === 'draft-orders';
-
-  const isPurchaseActive =
-    activeNav === 'purchases' ||
-    activeNav === 'create-purchase' ||
-    activeNav === 'purchase-returns' ||
-    activeNav === 'suppliers';
-
-  const isCustomerActive =
-    activeNav === 'customers' ||
-    activeNav === 'customer-tags';
 
   return (
     <aside
@@ -66,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div className="h-18 px-5 flex items-center justify-between shrink-0">
           <div
-            onClick={() => setActiveNav('dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center gap-3 cursor-pointer group"
           >
             {/* Comizely Figma Geometric Logo */}
@@ -131,21 +128,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Dashboard */}
           <div>
             <button
-              onClick={() => setActiveNav('dashboard')}
+              onClick={() => navigate('/dashboard')}
               title={collapsed ? 'Dashboard' : undefined}
               className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                activeNav === 'dashboard'
+                isDashboardActive
                   ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                   : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              {activeNav === 'dashboard' && (
+              {isDashboardActive && (
                 <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
               )}
               <div className="flex items-center gap-3.5">
                 <Home
                   className={`w-5 h-5 shrink-0 ${
-                    activeNav === 'dashboard' ? 'text-[#6355FF]' : 'text-slate-700'
+                    isDashboardActive ? 'text-[#6355FF]' : 'text-slate-700'
                   }`}
                   strokeWidth={1.75}
                 />
@@ -169,11 +166,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => {
                     if (collapsed) {
                       setCollapsed(false);
-                      setActiveNav('orders');
                       setOrdersExpanded(true);
+                      navigate('/orders');
                     } else {
                       setOrdersExpanded(!ordersExpanded);
-                      if (!isOrderActive) setActiveNav('orders');
+                      if (!isOrderActive) navigate('/orders');
                     }
                   }}
                   title={collapsed ? 'Orders' : undefined}
@@ -205,32 +202,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </button>
 
-                {/* Submenu Tree: All Orders, Order Return, Incomplete Orders, Draft Orders */}
+                {/* Submenu Tree */}
                 {!collapsed && ordersExpanded && (
                   <div className="relative pt-1 pb-1">
-                    {/* Item 1: All Orders (Active in screenshot) */}
+                    {/* All Orders */}
                     <div
-                      onClick={() => setActiveNav('orders')}
+                      onClick={() => navigate('/orders')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
-                      {/* Vertical line from top connector down through node to bottom */}
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
-                      {/* Node & horizontal branch */}
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'orders'
+                          pathname === '/orders'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -239,27 +234,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                     </div>
 
-                    {/* Item 2: Order Return */}
+                    {/* Order Return */}
                     <div
-                      onClick={() => setActiveNav('order-return')}
+                      onClick={() => navigate('/orders/returns')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'order-return' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/orders/returns' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'order-return' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/orders/returns' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'order-return'
+                          pathname === '/orders/returns'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -268,27 +263,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                     </div>
 
-                    {/* Item 3: Incomplete Orders */}
+                    {/* Incomplete Orders */}
                     <div
-                      onClick={() => setActiveNav('incomplete-orders')}
+                      onClick={() => navigate('/orders/incomplete')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'incomplete-orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/orders/incomplete' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'incomplete-orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/orders/incomplete' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'incomplete-orders'
+                          pathname === '/orders/incomplete'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -297,27 +292,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
                     </div>
 
-                    {/* Item 4: Draft Orders (Last tree item, stops at node) */}
+                    {/* Draft Orders */}
                     <div
-                      onClick={() => setActiveNav('draft-orders')}
+                      onClick={() => navigate('/orders/drafts')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'draft-orders' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/orders/drafts' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'draft-orders' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/orders/drafts' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'draft-orders'
+                          pathname === '/orders/drafts'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -331,21 +326,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Products */}
               <button
-                onClick={() => setActiveNav('products')}
+                onClick={() => navigate('/products')}
                 title={collapsed ? 'Products' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'products'
+                  isProductActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'products' && (
+                {isProductActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <Box
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'products' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isProductActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -354,7 +349,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'products' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isProductActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />
@@ -367,11 +362,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => {
                     if (collapsed) {
                       setCollapsed(false);
-                      setActiveNav('purchases');
                       setPurchasesExpanded(true);
+                      navigate('/purchases');
                     } else {
                       setPurchasesExpanded(!purchasesExpanded);
-                      if (!isPurchaseActive) setActiveNav('purchases');
+                      if (!isPurchaseActive) navigate('/purchases');
                     }
                   }}
                   title={collapsed ? 'Purchases' : undefined}
@@ -403,33 +398,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </button>
 
-                {/* Purchases nested options if expanded */}
+                {/* Purchases nested options */}
                 {!collapsed && purchasesExpanded && (
                   <div className="relative pt-1 pb-1">
                     <div
-                      onClick={() => setActiveNav('purchases')}
+                      onClick={() => navigate('/purchases')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'purchases' || activeNav === 'create-purchase'
-                              ? 'bg-[#6355FF]'
-                              : 'bg-slate-300'
+                            pathname === '/purchases' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'purchases' || activeNav === 'create-purchase'
-                              ? 'bg-[#6355FF]'
-                              : 'bg-slate-200'
+                            pathname === '/purchases' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'purchases' || activeNav === 'create-purchase'
+                          pathname === '/purchases'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -439,25 +430,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
 
                     <div
-                      onClick={() => setActiveNav('purchase-returns')}
+                      onClick={() => navigate('/purchases/returns')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'purchase-returns' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/purchases/returns' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'purchase-returns' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/purchases/returns' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'purchase-returns'
+                          pathname === '/purchases/returns'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -467,25 +458,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
 
                     <div
-                      onClick={() => setActiveNav('suppliers')}
+                      onClick={() => navigate('/suppliers')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'suppliers' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname.startsWith('/suppliers') ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'suppliers' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname.startsWith('/suppliers') ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'suppliers'
+                          pathname.startsWith('/suppliers')
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -503,11 +494,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => {
                     if (collapsed) {
                       setCollapsed(false);
-                      setActiveNav('customers');
                       setCustomersExpanded(true);
+                      navigate('/customers');
                     } else {
                       setCustomersExpanded(!customersExpanded);
-                      if (!isCustomerActive) setActiveNav('customers');
+                      if (!isCustomerActive) navigate('/customers');
                     }
                   }}
                   title={collapsed ? 'Customers' : undefined}
@@ -539,29 +530,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </button>
 
-                {/* Customers nested options if expanded */}
+                {/* Customers nested options */}
                 {!collapsed && customersExpanded && (
                   <div className="relative pt-1 pb-1">
                     <div
-                      onClick={() => setActiveNav('customers')}
+                      onClick={() => navigate('/customers')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 bottom-0 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'customers' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/customers' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'customers' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/customers' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'customers'
+                          pathname === '/customers'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -571,25 +562,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
 
                     <div
-                      onClick={() => setActiveNav('customer-tags')}
+                      onClick={() => navigate('/customers/tags')}
                       className="group relative flex items-center pl-7 py-2 cursor-pointer select-none rounded-lg hover:bg-slate-50/60 transition-colors"
                     >
                       <div className="absolute left-[33px] top-0 h-1/2 w-[1.5px] bg-slate-200" />
                       <div className="absolute left-[33px] top-1/2 -translate-y-1/2 flex items-center z-10">
                         <span
                           className={`-translate-x-1/2 w-2 h-2 rounded-full transition-colors ${
-                            activeNav === 'customer-tags' ? 'bg-[#6355FF]' : 'bg-slate-300'
+                            pathname === '/customers/tags' ? 'bg-[#6355FF]' : 'bg-slate-300'
                           }`}
                         />
                         <span
                           className={`w-3.5 h-[1.5px] ${
-                            activeNav === 'customer-tags' ? 'bg-[#6355FF]' : 'bg-slate-200'
+                            pathname === '/customers/tags' ? 'bg-[#6355FF]' : 'bg-slate-200'
                           }`}
                         />
                       </div>
                       <span
                         className={`pl-8 text-[14px] transition-colors ${
-                          activeNav === 'customer-tags'
+                          pathname === '/customers/tags'
                             ? 'text-[#6355FF] font-medium'
                             : 'text-slate-600 group-hover:text-slate-900 font-normal'
                         }`}
@@ -603,21 +594,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* My Tasks */}
               <button
-                onClick={() => setActiveNav('my-tasks')}
+                onClick={() => navigate('/tasks')}
                 title={collapsed ? 'My Tasks' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'my-tasks'
+                  isTaskActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'my-tasks' && (
+                {isTaskActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <ClipboardList
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'my-tasks' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isTaskActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -626,7 +617,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'my-tasks' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isTaskActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />
@@ -644,21 +635,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
             <div className="space-y-1">
               <button
-                onClick={() => setActiveNav('accounts')}
+                onClick={() => navigate('/accounts')}
                 title={collapsed ? 'Accounts' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'accounts'
+                  isFinanceActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'accounts' && (
+                {isFinanceActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <Landmark
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'accounts' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isFinanceActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -667,7 +658,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'accounts' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isFinanceActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />
@@ -675,21 +666,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveNav('reports')}
+                onClick={() => navigate('/reports')}
                 title={collapsed ? 'Reports' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'reports'
+                  isReportsActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'reports' && (
+                {isReportsActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <FileBarChart2
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'reports' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isReportsActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -698,7 +689,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'reports' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isReportsActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />
@@ -716,21 +707,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
             <div className="space-y-1">
               <button
-                onClick={() => setActiveNav('online-store')}
+                onClick={() => navigate('/store')}
                 title={collapsed ? 'Online Store' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'online-store'
+                  isStoreActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'online-store' && (
+                {isStoreActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <Store
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'online-store' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isStoreActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -739,7 +730,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'online-store' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isStoreActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />
@@ -747,21 +738,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveNav('settings')}
+                onClick={() => navigate('/settings')}
                 title={collapsed ? 'Setting' : undefined}
                 className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-[15px] transition-all cursor-pointer ${
-                  activeNav === 'settings'
+                  isSettingsActive
                     ? 'bg-[#F0F1FF] text-[#6355FF] font-semibold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                {activeNav === 'settings' && (
+                {isSettingsActive && (
                   <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#6355FF] rounded-r-full" />
                 )}
                 <div className="flex items-center gap-3.5">
                   <Settings
                     className={`w-5 h-5 shrink-0 ${
-                      activeNav === 'settings' ? 'text-[#6355FF]' : 'text-slate-700'
+                      isSettingsActive ? 'text-[#6355FF]' : 'text-slate-700'
                     }`}
                     strokeWidth={1.75}
                   />
@@ -770,7 +761,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!collapsed && (
                   <ChevronRight
                     className={`w-4 h-4 ${
-                      activeNav === 'settings' ? 'text-[#6355FF]' : 'text-slate-400'
+                      isSettingsActive ? 'text-[#6355FF]' : 'text-slate-400'
                     }`}
                     strokeWidth={1.8}
                   />

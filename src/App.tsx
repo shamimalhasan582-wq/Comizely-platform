@@ -4,6 +4,14 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { OrdersView } from './components/orders/OrdersView';
@@ -25,7 +33,10 @@ import { TasksView } from './components/tasks/TasksView';
 import { SettingsView } from './components/settings/SettingsView';
 import { OnlineStoreView } from './components/store/OnlineStoreView';
 import { SupportModal } from './components/support/SupportModal';
-import { NotificationsDrawer, NotificationItem } from './components/notifications/NotificationsDrawer';
+import {
+  NotificationsDrawer,
+  NotificationItem,
+} from './components/notifications/NotificationsDrawer';
 import { PurchasesView } from './components/purchases/PurchasesView';
 import { CreatePurchasePage } from './components/purchases/CreatePurchasePage';
 import { PurchaseDetailPage } from './components/purchases/PurchaseDetailPage';
@@ -35,7 +46,6 @@ import { CreateSupplierModal } from './components/suppliers/CreateSupplierModal'
 import { SupplierDetailPage } from './components/suppliers/SupplierDetailPage';
 import {
   INITIAL_PURCHASES,
-  SUPPLIERS_LIST,
   INITIAL_PURCHASE_RETURNS,
   DETAILED_SUPPLIERS,
 } from './data/mockPurchases';
@@ -49,14 +59,211 @@ import {
   initialDraftOrders,
   initialCustomerTags,
 } from './data/mockData';
-import { Order, Product, OrderStatus, ActiveNav, Purchase, PurchaseReturn, SupplierItem, Customer, CustomerTag } from './types';
+import {
+  Order,
+  Product,
+  OrderStatus,
+  Purchase,
+  PurchaseReturn,
+  SupplierItem,
+  Customer,
+  CustomerTag,
+} from './types';
+
+/* -------------------------------------------------------------
+   URL Parameter Wrappers for Detail Pages
+------------------------------------------------------------- */
+
+function OrderDetailWrapper({
+  orders,
+  products,
+  onUpdateOrderStatus,
+  onDeleteOrder,
+}: {
+  orders: Order[];
+  products: Product[];
+  onUpdateOrderStatus: (id: string, status: OrderStatus) => void;
+  onDeleteOrder: (id: string) => void;
+}) {
+  const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
+
+  const foundOrder = orders.find(
+    (o) =>
+      o.id === orderId ||
+      o.orderNumber.replace('#', '') === orderId ||
+      o.orderNumber === orderId ||
+      o.orderNumber === `#${orderId}`
+  );
+
+  if (!foundOrder) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Order Not Found</h2>
+        <p className="text-sm text-slate-500">
+          No order matches &quot;{orderId}&quot;.
+        </p>
+        <button
+          onClick={() => navigate('/orders')}
+          className="px-4 py-2 bg-[#6355FF] text-white rounded-xl text-sm font-medium cursor-pointer"
+        >
+          Back to Orders
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <OrderDetailPage
+      order={foundOrder}
+      products={products}
+      onBack={() => navigate('/orders')}
+      onUpdateStatus={onUpdateOrderStatus}
+      onDeleteOrder={(id) => {
+        onDeleteOrder(id);
+        navigate('/orders');
+      }}
+    />
+  );
+}
+
+function PurchaseDetailWrapper({
+  purchases,
+  onDeletePurchase,
+  onUpdatePurchase,
+}: {
+  purchases: Purchase[];
+  onDeletePurchase: (id: string) => void;
+  onUpdatePurchase: (updated: Purchase) => void;
+}) {
+  const { purchaseId } = useParams<{ purchaseId: string }>();
+  const navigate = useNavigate();
+
+  const found = purchases.find(
+    (p) =>
+      p.id === purchaseId ||
+      p.invoiceNo.replace('#', '') === purchaseId ||
+      p.invoiceNo === purchaseId ||
+      p.invoiceNo === `#${purchaseId}`
+  );
+
+  if (!found) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Purchase Not Found</h2>
+        <p className="text-sm text-slate-500">
+          No purchase matches &quot;{purchaseId}&quot;.
+        </p>
+        <button
+          onClick={() => navigate('/purchases')}
+          className="px-4 py-2 bg-[#6355FF] text-white rounded-xl text-sm font-medium cursor-pointer"
+        >
+          Back to Purchases
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <PurchaseDetailPage
+      purchase={found}
+      onBack={() => navigate('/purchases')}
+      onDeletePurchase={(id) => {
+        onDeletePurchase(id);
+        navigate('/purchases');
+      }}
+      onUpdatePurchase={onUpdatePurchase}
+    />
+  );
+}
+
+function CustomerDetailWrapper({
+  customers,
+}: {
+  customers: Customer[];
+}) {
+  const { customerId } = useParams<{ customerId: string }>();
+  const navigate = useNavigate();
+
+  const found = customers.find(
+    (c) =>
+      c.id === customerId ||
+      c.name.toLowerCase().replace(/\s+/g, '-') === customerId?.toLowerCase()
+  );
+
+  if (!found) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Customer Not Found</h2>
+        <button
+          onClick={() => navigate('/customers')}
+          className="px-4 py-2 bg-[#6355FF] text-white rounded-xl text-sm font-medium cursor-pointer"
+        >
+          Back to Customers
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <CustomerDetailPage
+      customer={found}
+      onBack={() => navigate('/customers')}
+    />
+  );
+}
+
+function SupplierDetailWrapper({
+  suppliers,
+  onShowToast,
+}: {
+  suppliers: SupplierItem[];
+  onShowToast: (msg: string) => void;
+}) {
+  const { supplierId } = useParams<{ supplierId: string }>();
+  const navigate = useNavigate();
+
+  const found = suppliers.find(
+    (s) =>
+      s.id === supplierId ||
+      s.name.toLowerCase().replace(/\s+/g, '-') === supplierId?.toLowerCase()
+  );
+
+  if (!found) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Supplier Not Found</h2>
+        <button
+          onClick={() => navigate('/suppliers')}
+          className="px-4 py-2 bg-[#6355FF] text-white rounded-xl text-sm font-medium cursor-pointer"
+        >
+          Back to Suppliers
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <SupplierDetailPage
+      supplier={found}
+      onBack={() => navigate('/suppliers')}
+      onAdvancePayment={() => onShowToast('Advance Payment recorded')}
+    />
+  );
+}
+
+/* -------------------------------------------------------------
+   Main App Component
+------------------------------------------------------------- */
 
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [customerTags, setCustomerTags] = useState<CustomerTag[]>(initialCustomerTags);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [isCreateCustomerTagOpen, setIsCreateCustomerTagOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<CustomerTag | null>(null);
@@ -64,19 +271,15 @@ export default function App() {
   const [incompleteOrders, setIncompleteOrders] = useState(initialIncompleteOrders);
   const [draftOrders, setDraftOrders] = useState(initialDraftOrders);
   const [purchases, setPurchases] = useState<Purchase[]>(INITIAL_PURCHASES);
-  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>(INITIAL_PURCHASE_RETURNS);
   const [suppliersList, setSuppliersList] = useState<SupplierItem[]>(DETAILED_SUPPLIERS);
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierItem | null>(null);
   const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
 
-  const [activeNav, setActiveNav] = useState<ActiveNav>('orders');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals & Drawers state
   const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
@@ -88,195 +291,139 @@ export default function App() {
 
   // Toast feedback state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Notifications state
+  // Notification items state
   const [notifications, setNotifications] = useState<NotificationItem[]>([
     {
-      id: 'n-1',
-      title: 'New Online Order Placed',
-      description: 'Order #21547 received via Biponil.com checkout.',
-      time: '15m ago',
+      id: 'notif-1',
+      title: 'New Online Order #21547',
+      description: 'Rafiqul Islam placed an order for ৳ 1,310 from Online Shop',
+      time: 'Just now',
       read: false,
       type: 'order',
     },
     {
-      id: 'n-2',
-      title: 'Low Stock Alert',
-      description: 'Genuine Leather Minimalist Wallet is down to 5 units.',
-      time: '1h ago',
+      id: 'notif-2',
+      title: 'Stock Alert: Oraimo Lite 2',
+      description: 'Stock dropped below threshold (4 units remaining)',
+      time: '25m ago',
       read: false,
       type: 'stock',
     },
     {
-      id: 'n-3',
-      title: 'Courier Dispatch Confirmed',
-      description: 'Steadfast Courier picked up 4 ready shipments.',
-      time: '3h ago',
+      id: 'notif-3',
+      title: 'Return Request #RET-901',
+      description: 'Customer requested return for defective headphone',
+      time: '2h ago',
       read: true,
-      type: 'courier',
+      type: 'return',
     },
   ]);
 
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
 
-  // Filtered orders taking into account header search and filter modal
+  // Filtered orders for table & search query
   const displayedOrders = useMemo(() => {
-    let result = [...orders];
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (o) =>
-          o.orderNumber.toLowerCase().includes(q) ||
-          o.customer.name.toLowerCase().includes(q) ||
-          o.customer.phone.includes(q) ||
-          o.branch.toLowerCase().includes(q)
-      );
-    }
-
-    if (filterBranch !== 'All') {
-      result = result.filter((o) => o.branch === filterBranch);
-    }
-
-    if (filterPaymentStatus !== 'All') {
-      result = result.filter((o) => o.paymentStatus === filterPaymentStatus);
-    }
-
-    if (filterMinAmount) {
-      const min = parseFloat(filterMinAmount);
-      if (!isNaN(min)) {
-        result = result.filter((o) => o.totalAmount >= min);
+    return orders.filter((order) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesQuery =
+          order.orderNumber.toLowerCase().includes(q) ||
+          order.customer.name.toLowerCase().includes(q) ||
+          order.customer.phone.includes(q) ||
+          order.branch.toLowerCase().includes(q);
+        if (!matchesQuery) return false;
       }
-    }
+      return true;
+    });
+  }, [orders, searchQuery]);
 
-    if (filterMaxAmount) {
-      const max = parseFloat(filterMaxAmount);
-      if (!isNaN(max)) {
-        result = result.filter((o) => o.totalAmount <= max);
-      }
-    }
-
-    return result;
-  }, [orders, searchQuery, filterBranch, filterPaymentStatus, filterMinAmount, filterMaxAmount]);
-
-  const handleResetFilters = () => {
-    setFilterBranch('All');
-    setFilterPaymentStatus('All');
-    setFilterMinAmount('');
-    setFilterMaxAmount('');
-    showToast('Filters reset to default');
-  };
-
-  // Actions on orders
+  // Handlers for orders
   const handleCreateOrder = (newOrder: Order) => {
     setOrders([newOrder, ...orders]);
     showToast(`Order ${newOrder.orderNumber} created successfully!`);
-    // Add notification
-    setNotifications((prev) => [
-      {
-        id: `notif-${Date.now()}`,
-        title: `Order ${newOrder.orderNumber} Created`,
-        description: `Customer ${newOrder.customer.name} • ${newOrder.totalAmount} BDT`,
-        time: 'Just now',
-        read: false,
-        type: 'order',
-      },
-      ...prev,
-    ]);
   };
 
   const handleUpdateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null));
-    }
-    showToast(`Order status updated to ${newStatus}`);
+    showToast(`Order status updated to "${newStatus}"`);
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    const target = orders.find((o) => o.id === orderId);
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder(null);
-    }
-    showToast(`Order ${target?.orderNumber || ''} removed.`);
+    showToast('Order deleted successfully');
   };
 
   const handleBulkDelete = (orderIds: string[]) => {
     setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
-    showToast(`Deleted ${orderIds.length} orders`);
+    showToast(`${orderIds.length} orders deleted`);
   };
 
   const handleBulkStatusUpdate = (orderIds: string[], status: OrderStatus) => {
     setOrders((prev) =>
       prev.map((o) => (orderIds.includes(o.id) ? { ...o, status } : o))
     );
-    showToast(`Updated ${orderIds.length} orders to ${status}`);
+    showToast(`${orderIds.length} orders updated to "${status}"`);
   };
 
-  // Product actions
-  const handleAddProduct = (newProd: Product) => {
-    setProducts([newProd, ...products]);
-    showToast(`Product "${newProd.name}" added to catalog.`);
+  const handleResetFilters = () => {
+    setFilterBranch('All');
+    setFilterPaymentStatus('All');
+    setFilterMinAmount('');
+    setFilterMaxAmount('');
+    setSearchQuery('');
+    showToast('Filters cleared');
   };
 
+  // Product stock handlers
   const handleUpdateStock = (productId: string, newStock: number) => {
     setProducts((prev) =>
-      prev.map((p) =>
-        p.id === productId
-          ? {
-              ...p,
-              stock: newStock,
-              status: newStock > 10 ? 'In Stock' : newStock > 0 ? 'Low Stock' : 'Out of Stock',
-            }
-          : p
-      )
+      prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
     );
-    showToast('Inventory stock updated.');
+    showToast('Stock level updated');
+  };
+
+  const handleAddProduct = (newProduct: Product) => {
+    setProducts([newProduct, ...products]);
+    showToast(`Product "${newProduct.name}" added`);
   };
 
   const handleDeleteProduct = (productId: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
-    showToast('Product removed from catalog.');
+    showToast('Product removed');
   };
 
-  // Returns actions
+  // Returns handlers
   const handleApproveReturn = (id: string) => {
     setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Approved' } : r))
+      prev.map((r) => (r.id === id ? { ...r, status: 'Approved' as const } : r))
     );
-    showToast('Return request approved. Ready for refund.');
+    showToast('Return request approved');
   };
 
   const handleRejectReturn = (id: string) => {
     setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' } : r))
+      prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' as const } : r))
     );
-    showToast('Return request rejected.');
+    showToast('Return request rejected');
   };
 
   const handleProcessRefund = (id: string) => {
     setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Refunded' } : r))
+      prev.map((r) => (r.id === id ? { ...r, status: 'Refunded' as const } : r))
     );
-    showToast('Refund processed successfully to customer bKash/wallet.');
+    showToast('Refund processed successfully');
   };
 
   // Incomplete orders
   const handleSendRecovery = (id: string) => {
-    setIncompleteOrders((prev) =>
-      prev.map((inc) => (inc.id === id ? { ...inc, recoverySent: true } : inc))
-    );
-    showToast('Recovery SMS with 5% discount link dispatched to customer!');
+    showToast('SMS & WhatsApp recovery checkout link sent to customer!');
   };
 
   // Draft orders
@@ -289,7 +436,6 @@ export default function App() {
     };
     setOrders([liveOrder, ...orders]);
     setDraftOrders((prev) => prev.filter((d) => d.id !== draft.id));
-    setActiveNav('orders');
     showToast(`Draft converted to live order ${liveOrder.orderNumber}!`);
   };
 
@@ -298,12 +444,12 @@ export default function App() {
     showToast('Draft order discarded.');
   };
 
-  // If in online-store view, render full storefront
-  if (activeNav === 'online-store') {
+  // If viewing the standalone online-store storefront
+  if (location.pathname === '/store' || location.pathname === '/online-store') {
     return (
       <OnlineStoreView
         products={products}
-        onBackToAdmin={() => setActiveNav('orders')}
+        onBackToAdmin={() => navigate('/orders')}
         onPlaceStorefrontOrder={handleCreateOrder}
         lastOrderNumber={orders[0]?.orderNumber || '#21547'}
       />
@@ -312,25 +458,10 @@ export default function App() {
 
   return (
     <div className="h-screen bg-white text-slate-800 flex flex-col md:flex-row antialiased selection:bg-purple-100 selection:text-purple-700 overflow-hidden">
-      {/* Left Sidebar (pixel-accurate to screenshot) */}
+      {/* Left Sidebar */}
       <Sidebar
-        activeNav={activeNav}
-        setActiveNav={(nav) => {
-          setSelectedOrder(null);
-          setSelectedPurchase(null);
-          setSelectedSupplier(null);
-          setActiveNav(nav);
-        }}
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
-        onOpenStorePreview={() => setActiveNav('online-store')}
-        orderCounts={{
-          all: orders.length,
-          pending: orders.filter((o) => o.status === 'Pending').length,
-          followUp: orders.filter((o) => o.status === 'Follow Up').length,
-          approved: orders.filter((o) => o.status === 'Approved').length,
-          processing: orders.filter((o) => o.status === 'Processing').length,
-        }}
       />
 
       {/* Main App Layout */}
@@ -342,260 +473,323 @@ export default function App() {
           onOpenSupport={() => setIsSupportOpen(true)}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           unreadNotificationsCount={unreadNotificationsCount}
-          onOpenStorePreview={() => setActiveNav('online-store')}
-          onNavigateSettings={() => setActiveNav('settings')}
+          onOpenStorePreview={() => navigate('/store')}
+          onNavigateSettings={() => navigate('/settings')}
         />
 
-        {/* Dynamic Views */}
+        {/* Dynamic Routed Views */}
         <main className="flex-1 bg-[#F2F2F2] rounded-tl-[36px] md:rounded-tl-[40px] overflow-y-auto overflow-x-hidden scrollbar-thin">
-          {selectedOrder ? (
-            <OrderDetailPage
-              order={selectedOrder}
-              products={products}
-              onBack={() => setSelectedOrder(null)}
-              onUpdateStatus={handleUpdateOrderStatus}
-              onDeleteOrder={(id) => {
-                handleDeleteOrder(id);
-                setSelectedOrder(null);
-              }}
+          <Routes>
+            <Route path="/" element={<Navigate to="/orders" replace />} />
+            
+            <Route
+              path="/dashboard"
+              element={
+                <DashboardView
+                  orders={orders}
+                  products={products}
+                  onOpenCreateOrder={() => navigate('/orders/create')}
+                  onNavigateToOrders={() => navigate('/orders')}
+                  onSelectOrder={(ord) =>
+                    navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
+                  }
+                  onOpenStorePreview={() => navigate('/store')}
+                />
+              }
             />
-          ) : selectedPurchase ? (
-            <PurchaseDetailPage
-              purchase={selectedPurchase}
-              onBack={() => setSelectedPurchase(null)}
-              onDeletePurchase={(id) => {
-                setPurchases((prev) => prev.filter((p) => p.id !== id));
-                setSelectedPurchase(null);
-                showToast('Purchase deleted');
-              }}
-              onUpdatePurchase={(updated) => {
-                setPurchases((prev) =>
-                  prev.map((p) => (p.id === updated.id ? updated : p))
-                );
-                setSelectedPurchase(updated);
-                showToast(`Purchase ${updated.invoiceNo} updated`);
-              }}
+
+            <Route
+              path="/orders"
+              element={
+                <OrdersView
+                  orders={displayedOrders}
+                  onOpenCreateOrder={() => navigate('/orders/create')}
+                  onSelectOrder={(ord) =>
+                    navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
+                  }
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                  onDeleteOrder={handleDeleteOrder}
+                  onBulkDelete={handleBulkDelete}
+                  onBulkStatusUpdate={handleBulkStatusUpdate}
+                  filterBranch={filterBranch}
+                  setFilterBranch={setFilterBranch}
+                  filterPaymentStatus={filterPaymentStatus}
+                  setFilterPaymentStatus={setFilterPaymentStatus}
+                  filterMinAmount={filterMinAmount}
+                  setFilterMinAmount={setFilterMinAmount}
+                  filterMaxAmount={filterMaxAmount}
+                  setFilterMaxAmount={setFilterMaxAmount}
+                  onResetFilters={handleResetFilters}
+                />
+              }
             />
-          ) : selectedSupplier ? (
-            <SupplierDetailPage
-              supplier={selectedSupplier}
-              onBack={() => setSelectedSupplier(null)}
-              onAdvancePayment={() => showToast('Advance Payment recorded')}
+
+            <Route
+              path="/orders/create"
+              element={
+                <CreateOrderPage
+                  products={products}
+                  customers={customers}
+                  lastOrderNumber={orders[0]?.orderNumber || '#21547'}
+                  onCancel={() => navigate('/orders')}
+                  onCreateOrder={(newOrder) => {
+                    handleCreateOrder(newOrder);
+                    navigate('/orders');
+                  }}
+                  onSaveDraft={(draft) => {
+                    setDraftOrders([draft, ...draftOrders]);
+                    navigate('/orders/drafts');
+                    showToast(`Draft ${draft.orderNumber} saved successfully`);
+                  }}
+                />
+              }
             />
-          ) : (
-            <>
-              {activeNav === 'orders' && (
-            <OrdersView
-              orders={displayedOrders}
-              onOpenCreateOrder={() => setActiveNav('create-order')}
-              onSelectOrder={(ord) => setSelectedOrder(ord)}
-              onUpdateOrderStatus={handleUpdateOrderStatus}
-              onDeleteOrder={handleDeleteOrder}
-              onBulkDelete={handleBulkDelete}
-              onBulkStatusUpdate={handleBulkStatusUpdate}
-              filterBranch={filterBranch}
-              setFilterBranch={setFilterBranch}
-              filterPaymentStatus={filterPaymentStatus}
-              setFilterPaymentStatus={setFilterPaymentStatus}
-              filterMinAmount={filterMinAmount}
-              setFilterMinAmount={setFilterMinAmount}
-              filterMaxAmount={filterMaxAmount}
-              setFilterMaxAmount={setFilterMaxAmount}
-              onResetFilters={handleResetFilters}
+
+            <Route
+              path="/orders/:orderId"
+              element={
+                <OrderDetailWrapper
+                  orders={orders}
+                  products={products}
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                  onDeleteOrder={handleDeleteOrder}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'create-order' && (
-            <CreateOrderPage
-              products={products}
-              customers={customers}
-              lastOrderNumber={orders[0]?.orderNumber || '#21547'}
-              onCancel={() => setActiveNav('orders')}
-              onCreateOrder={(newOrder) => {
-                handleCreateOrder(newOrder);
-                setActiveNav('orders');
-              }}
-              onSaveDraft={(draft) => {
-                setDraftOrders([draft, ...draftOrders]);
-                setActiveNav('orders');
-                showToast(`Draft ${draft.orderNumber} saved successfully`);
-              }}
+            <Route
+              path="/orders/returns"
+              element={
+                <OrderReturnsView
+                  returns={returns}
+                  onApproveReturn={handleApproveReturn}
+                  onRejectReturn={handleRejectReturn}
+                  onProcessRefund={handleProcessRefund}
+                  onBackToOrders={() => navigate('/orders')}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'order-return' && (
-            <OrderReturnsView
-              returns={returns}
-              onApproveReturn={handleApproveReturn}
-              onRejectReturn={handleRejectReturn}
-              onProcessRefund={handleProcessRefund}
-              onBackToOrders={() => setActiveNav('orders')}
+            <Route
+              path="/orders/incomplete"
+              element={
+                <IncompleteOrdersView
+                  incompleteOrders={incompleteOrders}
+                  onSendRecovery={handleSendRecovery}
+                  onBackToOrders={() => navigate('/orders')}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'incomplete-orders' && (
-            <IncompleteOrdersView
-              incompleteOrders={incompleteOrders}
-              onSendRecovery={handleSendRecovery}
-              onBackToOrders={() => setActiveNav('orders')}
+            <Route
+              path="/orders/drafts"
+              element={
+                <DraftOrdersView
+                  draftOrders={draftOrders}
+                  onConvertDraftToLive={(draft) => {
+                    handleConvertDraftToLive(draft);
+                    navigate('/orders');
+                  }}
+                  onDeleteDraft={handleDeleteDraft}
+                  onBackToOrders={() => navigate('/orders')}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'draft-orders' && (
-            <DraftOrdersView
-              draftOrders={draftOrders}
-              onConvertDraftToLive={handleConvertDraftToLive}
-              onDeleteDraft={handleDeleteDraft}
-              onBackToOrders={() => setActiveNav('orders')}
+            <Route
+              path="/products"
+              element={
+                <ProductsView
+                  products={products}
+                  onAddProduct={handleAddProduct}
+                  onUpdateStock={handleUpdateStock}
+                  onDeleteProduct={handleDeleteProduct}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'dashboard' && (
-            <DashboardView
-              orders={orders}
-              products={products}
-              onOpenCreateOrder={() => setActiveNav('create-order')}
-              onNavigateToOrders={() => setActiveNav('orders')}
-              onSelectOrder={(ord) => setSelectedOrder(ord)}
-              onOpenStorePreview={() => setActiveNav('online-store')}
+            <Route
+              path="/purchases"
+              element={
+                <PurchasesView
+                  purchases={purchases}
+                  onOpenCreatePurchase={() => navigate('/purchases/create')}
+                  onSelectPurchase={(pur) =>
+                    navigate(`/purchases/${pur.invoiceNo.replace('#', '')}`)
+                  }
+                  onDeletePurchase={(id) => {
+                    setPurchases((prev) => prev.filter((p) => p.id !== id));
+                    showToast('Purchase deleted');
+                  }}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'products' && (
-            <ProductsView
-              products={products}
-              onAddProduct={handleAddProduct}
-              onUpdateStock={handleUpdateStock}
-              onDeleteProduct={handleDeleteProduct}
+            <Route
+              path="/purchases/create"
+              element={
+                <CreatePurchasePage
+                  products={products}
+                  onCancel={() => navigate('/purchases')}
+                  onSavePurchase={(newPur) => {
+                    setPurchases([newPur, ...purchases]);
+                    navigate('/purchases');
+                    showToast(`Purchase ${newPur.invoiceNo} created successfully`);
+                  }}
+                  lastInvoiceNumber={purchases[0]?.invoiceNo || '#137180'}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'purchases' && (
-            <PurchasesView
-              purchases={purchases}
-              onOpenCreatePurchase={() => setActiveNav('create-purchase')}
-              onSelectPurchase={(pur) => setSelectedPurchase(pur)}
-              onDeletePurchase={(id) => {
-                setPurchases((prev) => prev.filter((p) => p.id !== id));
-                showToast('Purchase deleted');
-              }}
+            <Route
+              path="/purchases/returns"
+              element={
+                <PurchasesReturnView
+                  returns={purchaseReturns}
+                  onSelectSupplier={(name) => {
+                    const found =
+                      suppliersList.find(
+                        (s) =>
+                          s.name.toLowerCase().includes(name.toLowerCase()) ||
+                          (s.companyName &&
+                            s.companyName.toLowerCase().includes(name.toLowerCase()))
+                      ) || suppliersList[0];
+                    navigate(`/suppliers/${found.id}`);
+                  }}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'create-purchase' && (
-            <CreatePurchasePage
-              products={products}
-              onCancel={() => setActiveNav('purchases')}
-              onSavePurchase={(newPur) => {
-                setPurchases([newPur, ...purchases]);
-                setActiveNav('purchases');
-                showToast(`Purchase ${newPur.invoiceNo} created successfully`);
-              }}
-              lastInvoiceNumber={purchases[0]?.invoiceNo || '#137180'}
+            <Route
+              path="/purchases/:purchaseId"
+              element={
+                <PurchaseDetailWrapper
+                  purchases={purchases}
+                  onDeletePurchase={(id) => {
+                    setPurchases((prev) => prev.filter((p) => p.id !== id));
+                    showToast('Purchase deleted');
+                  }}
+                  onUpdatePurchase={(updated) => {
+                    setPurchases((prev) =>
+                      prev.map((p) => (p.id === updated.id ? updated : p))
+                    );
+                    showToast(`Purchase ${updated.invoiceNo} updated`);
+                  }}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'purchase-returns' && (
-            <PurchasesReturnView
-              returns={purchaseReturns}
-              onSelectSupplier={(name) => {
-                const found =
-                  suppliersList.find(
-                    (s) =>
-                      s.name.toLowerCase().includes(name.toLowerCase()) ||
-                      (s.companyName &&
-                        s.companyName.toLowerCase().includes(name.toLowerCase()))
-                  ) || suppliersList[0];
-                setSelectedSupplier(found);
-              }}
+            <Route
+              path="/suppliers"
+              element={
+                <SuppliersView
+                  suppliers={suppliersList}
+                  onOpenCreateSupplier={() => setIsCreateSupplierOpen(true)}
+                  onSelectSupplier={(s) => navigate(`/suppliers/${s.id}`)}
+                  onDeleteSupplier={(id) => {
+                    setSuppliersList((prev) => prev.filter((s) => s.id !== id));
+                    showToast('Supplier deleted');
+                  }}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'suppliers' && (
-            <SuppliersView
-              suppliers={suppliersList}
-              onOpenCreateSupplier={() => setIsCreateSupplierOpen(true)}
-              onSelectSupplier={(s) => setSelectedSupplier(s)}
-              onDeleteSupplier={(id) => {
-                setSuppliersList((prev) => prev.filter((s) => s.id !== id));
-                showToast('Supplier deleted');
-              }}
+            <Route
+              path="/suppliers/:supplierId"
+              element={
+                <SupplierDetailWrapper
+                  suppliers={suppliersList}
+                  onShowToast={showToast}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'customers' && (
-            selectedCustomer ? (
-              <CustomerDetailPage
-                customer={selectedCustomer}
-                onBack={() => setSelectedCustomer(null)}
-              />
-            ) : (
-              <CustomersView
-                customers={customers}
-                onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
-                onSelectCustomer={(c) => setSelectedCustomer(c)}
-                onDeleteCustomer={(id) => {
-                  setCustomers((prev) => prev.filter((c) => c.id !== id));
-                  showToast('Customer deleted');
-                }}
-              />
-            )
-          )}
-
-          {activeNav === 'customer-tags' && (
-            <CustomerTagsView
-              tags={customerTags}
-              onOpenCreateTag={() => {
-                setEditingTag(null);
-                setIsCreateCustomerTagOpen(true);
-              }}
-              onDeleteTag={(id) => {
-                setCustomerTags((prev) => prev.filter((t) => t.id !== id));
-                showToast('Tag deleted');
-              }}
-              onEditTag={(tag) => {
-                setEditingTag(tag);
-                setIsCreateCustomerTagOpen(true);
-              }}
+            <Route
+              path="/customers"
+              element={
+                <CustomersView
+                  customers={customers}
+                  onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
+                  onSelectCustomer={(c) => navigate(`/customers/${c.id}`)}
+                  onDeleteCustomer={(id) => {
+                    setCustomers((prev) => prev.filter((c) => c.id !== id));
+                    showToast('Customer deleted');
+                  }}
+                />
+              }
             />
-          )}
 
-          {activeNav === 'my-tasks' && <TasksView />}
+            <Route
+              path="/customers/tags"
+              element={
+                <CustomerTagsView
+                  tags={customerTags}
+                  onOpenCreateTag={() => {
+                    setEditingTag(null);
+                    setIsCreateCustomerTagOpen(true);
+                  }}
+                  onDeleteTag={(id) => {
+                    setCustomerTags((prev) => prev.filter((t) => t.id !== id));
+                    showToast('Tag deleted');
+                  }}
+                  onEditTag={(tag) => {
+                    setEditingTag(tag);
+                    setIsCreateCustomerTagOpen(true);
+                  }}
+                />
+              }
+            />
 
-          {activeNav === 'accounts' && <FinanceView orders={orders} />}
+            <Route
+              path="/customers/:customerId"
+              element={<CustomerDetailWrapper customers={customers} />}
+            />
 
-          {activeNav === 'reports' && (
-            <div className="p-6 md:p-8 space-y-5 bg-[#F2F2F2]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Reports</h1>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
-                    <span>Filter Date</span>
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
-                    <span>More Actions</span>
-                  </button>
-                  <button className="flex items-center gap-2 px-5 py-2.5 bg-[#8075FF] hover:bg-[#6e62ff] text-white text-sm font-semibold rounded-2xl shadow-sm shadow-[#8075FF]/25 cursor-pointer hover:shadow-md transition-all active:scale-98">
-                    <span>Export Analytics</span>
-                  </button>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-                <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-6 text-sm font-bold text-slate-900 border-b-2 border-purple-600 pb-1">
-                    Sales Overview & Tax Audit
+            <Route path="/tasks" element={<TasksView />} />
+            <Route path="/my-tasks" element={<Navigate to="/tasks" replace />} />
+
+            <Route path="/accounts" element={<FinanceView orders={orders} />} />
+            <Route path="/finance" element={<Navigate to="/accounts" replace />} />
+
+            <Route
+              path="/reports"
+              element={
+                <div className="p-6 md:p-8 space-y-5 bg-[#F2F2F2]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                      Reports
+                    </h1>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
+                        <span>Filter Date</span>
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
+                        <span>More Actions</span>
+                      </button>
+                      <button className="flex items-center gap-2 px-5 py-2.5 bg-[#8075FF] hover:bg-[#6e62ff] text-white text-sm font-semibold rounded-2xl shadow-sm shadow-[#8075FF]/25 cursor-pointer hover:shadow-md transition-all active:scale-98">
+                        <span>Export Analytics</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+                    <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-6 text-sm font-bold text-slate-900 border-b-2 border-purple-600 pb-1">
+                        Sales Overview & Tax Audit
+                      </div>
+                    </div>
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      Exportable sales performance, sales by branch, customer lifetime
+                      value, and tax audit reports.
+                    </div>
                   </div>
                 </div>
-                <div className="p-8 text-center text-xs text-slate-400">
-                  Exportable sales performance, sales by branch, customer lifetime value, and tax audit reports.
-                </div>
-              </div>
-            </div>
-          )}
+              }
+            />
 
-          {activeNav === 'settings' && <SettingsView />}
-            </>
-          )}
+            <Route path="/settings" element={<SettingsView />} />
+            <Route path="/online-store" element={<Navigate to="/store" replace />} />
+            <Route path="*" element={<Navigate to="/orders" replace />} />
+          </Routes>
         </main>
       </div>
 
@@ -617,8 +811,6 @@ export default function App() {
         }}
       />
 
-
-
       <CreateCustomerModal
         isOpen={isCreateCustomerOpen}
         onClose={() => setIsCreateCustomerOpen(false)}
@@ -630,10 +822,15 @@ export default function App() {
 
       <CreateCustomerTagModal
         isOpen={isCreateCustomerTagOpen}
-        onClose={() => { setIsCreateCustomerTagOpen(false); setEditingTag(null); }}
+        onClose={() => {
+          setIsCreateCustomerTagOpen(false);
+          setEditingTag(null);
+        }}
         onCreateTag={(tag) => {
           if (editingTag) {
-            setCustomerTags((prev) => prev.map((t) => t.id === tag.id ? tag : t));
+            setCustomerTags((prev) =>
+              prev.map((t) => (t.id === tag.id ? tag : t))
+            );
             showToast('Tag updated successfully');
           } else {
             setCustomerTags((prev) => [tag, ...prev]);
@@ -644,7 +841,10 @@ export default function App() {
         editingTag={editingTag}
       />
 
-      <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
+      <SupportModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
+      />
 
       <NotificationsDrawer
         isOpen={isNotificationsOpen}
@@ -658,11 +858,10 @@ export default function App() {
         }
       />
 
-      {/* Floating Action Toast Notification */}
+      {/* Toast Notification Popup */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-60 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-xl border border-slate-700/80 animate-in fade-in slide-in-from-bottom-2 duration-150 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>{toastMessage}</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg border border-slate-800 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          {toastMessage}
         </div>
       )}
     </div>
