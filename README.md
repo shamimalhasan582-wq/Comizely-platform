@@ -55,6 +55,7 @@ src/
 ├── context/
 │   └── AppContext.tsx  # React Context & useApp() custom hook
 ├── components/         # Clean modular UI views & dialogs
+│   ├── ui/             # 🎨 Reusable Design System components (Button, Badge, Modal, Input, Card, tokens)
 │   ├── orders/
 │   ├── products/
 │   ├── purchases/
