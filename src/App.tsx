@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import {
   Routes,
   Route,
@@ -15,36 +15,11 @@ import {
 import { useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { OrdersView } from './components/orders/OrdersView';
-import { CreateOrderModal } from './components/orders/CreateOrderModal';
-import { CreateOrderPage } from './components/orders/CreateOrderPage';
-import { OrderDetailPage } from './components/orders/OrderDetailPage';
-import { OrderReturnsView } from './components/orders/OrderReturnsView';
-import { IncompleteOrdersView } from './components/orders/IncompleteOrdersView';
-import { DraftOrdersView } from './components/orders/DraftOrdersView';
-import { DashboardView } from './components/dashboard/DashboardView';
-import { ProductsView } from './components/products/ProductsView';
-import { CustomersView } from './components/customers/CustomersView';
-import { CreateCustomerModal } from './components/customers/CreateCustomerModal';
-import { CustomerDetailPage } from './components/customers/CustomerDetailPage';
-import { CustomerTagsView } from './components/customers/CustomerTagsView';
-import { CreateCustomerTagModal } from './components/customers/CreateCustomerTagModal';
-import { FinanceView } from './components/finance/FinanceView';
-import { TasksView } from './components/tasks/TasksView';
-import { SettingsView } from './components/settings/SettingsView';
-import { OnlineStoreView } from './components/store/OnlineStoreView';
 import { SupportModal } from './components/support/SupportModal';
 import {
   NotificationsDrawer,
   NotificationItem,
 } from './components/notifications/NotificationsDrawer';
-import { PurchasesView } from './components/purchases/PurchasesView';
-import { CreatePurchasePage } from './components/purchases/CreatePurchasePage';
-import { PurchaseDetailPage } from './components/purchases/PurchaseDetailPage';
-import { PurchasesReturnView } from './components/purchases/PurchasesReturnView';
-import { SuppliersView } from './components/suppliers/SuppliersView';
-import { CreateSupplierModal } from './components/suppliers/CreateSupplierModal';
-import { SupplierDetailPage } from './components/suppliers/SupplierDetailPage';
 import {
   Order,
   Product,
@@ -54,6 +29,147 @@ import {
   Customer,
   CustomerTag,
 } from './types';
+
+/* -------------------------------------------------------------
+   Code-Splitted Lazy Loaded Route Views
+------------------------------------------------------------- */
+const DashboardView = lazy(() =>
+  import('./components/dashboard/DashboardView').then((m) => ({
+    default: m.DashboardView,
+  }))
+);
+const OrdersView = lazy(() =>
+  import('./components/orders/OrdersView').then((m) => ({
+    default: m.OrdersView,
+  }))
+);
+const CreateOrderPage = lazy(() =>
+  import('./components/orders/CreateOrderPage').then((m) => ({
+    default: m.CreateOrderPage,
+  }))
+);
+const OrderDetailPage = lazy(() =>
+  import('./components/orders/OrderDetailPage').then((m) => ({
+    default: m.OrderDetailPage,
+  }))
+);
+const OrderReturnsView = lazy(() =>
+  import('./components/orders/OrderReturnsView').then((m) => ({
+    default: m.OrderReturnsView,
+  }))
+);
+const IncompleteOrdersView = lazy(() =>
+  import('./components/orders/IncompleteOrdersView').then((m) => ({
+    default: m.IncompleteOrdersView,
+  }))
+);
+const DraftOrdersView = lazy(() =>
+  import('./components/orders/DraftOrdersView').then((m) => ({
+    default: m.DraftOrdersView,
+  }))
+);
+const ProductsView = lazy(() =>
+  import('./components/products/ProductsView').then((m) => ({
+    default: m.ProductsView,
+  }))
+);
+const PurchasesView = lazy(() =>
+  import('./components/purchases/PurchasesView').then((m) => ({
+    default: m.PurchasesView,
+  }))
+);
+const CreatePurchasePage = lazy(() =>
+  import('./components/purchases/CreatePurchasePage').then((m) => ({
+    default: m.CreatePurchasePage,
+  }))
+);
+const PurchaseDetailPage = lazy(() =>
+  import('./components/purchases/PurchaseDetailPage').then((m) => ({
+    default: m.PurchaseDetailPage,
+  }))
+);
+const PurchasesReturnView = lazy(() =>
+  import('./components/purchases/PurchasesReturnView').then((m) => ({
+    default: m.PurchasesReturnView,
+  }))
+);
+const SuppliersView = lazy(() =>
+  import('./components/suppliers/SuppliersView').then((m) => ({
+    default: m.SuppliersView,
+  }))
+);
+const SupplierDetailPage = lazy(() =>
+  import('./components/suppliers/SupplierDetailPage').then((m) => ({
+    default: m.SupplierDetailPage,
+  }))
+);
+const CustomersView = lazy(() =>
+  import('./components/customers/CustomersView').then((m) => ({
+    default: m.CustomersView,
+  }))
+);
+const CustomerDetailPage = lazy(() =>
+  import('./components/customers/CustomerDetailPage').then((m) => ({
+    default: m.CustomerDetailPage,
+  }))
+);
+const CustomerTagsView = lazy(() =>
+  import('./components/customers/CustomerTagsView').then((m) => ({
+    default: m.CustomerTagsView,
+  }))
+);
+const FinanceView = lazy(() =>
+  import('./components/finance/FinanceView').then((m) => ({
+    default: m.FinanceView,
+  }))
+);
+const TasksView = lazy(() =>
+  import('./components/tasks/TasksView').then((m) => ({
+    default: m.TasksView,
+  }))
+);
+const SettingsView = lazy(() =>
+  import('./components/settings/SettingsView').then((m) => ({
+    default: m.SettingsView,
+  }))
+);
+const OnlineStoreView = lazy(() =>
+  import('./components/store/OnlineStoreView').then((m) => ({
+    default: m.OnlineStoreView,
+  }))
+);
+
+// Modals lazy loaded
+const CreateOrderModal = lazy(() =>
+  import('./components/orders/CreateOrderModal').then((m) => ({
+    default: m.CreateOrderModal,
+  }))
+);
+const CreateSupplierModal = lazy(() =>
+  import('./components/suppliers/CreateSupplierModal').then((m) => ({
+    default: m.CreateSupplierModal,
+  }))
+);
+const CreateCustomerModal = lazy(() =>
+  import('./components/customers/CreateCustomerModal').then((m) => ({
+    default: m.CreateCustomerModal,
+  }))
+);
+const CreateCustomerTagModal = lazy(() =>
+  import('./components/customers/CreateCustomerTagModal').then((m) => ({
+    default: m.CreateCustomerTagModal,
+  }))
+);
+
+// Loading Skeleton
+const PageLoadingFallback = () => (
+  <div className="p-8 flex items-center justify-center min-h-[400px]">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs font-medium text-slate-400">Loading view...</span>
+    </div>
+  </div>
+);
 
 /* -------------------------------------------------------------
    URL Parameter Wrappers for Detail Pages
@@ -361,14 +477,16 @@ export default function App() {
   // If viewing the standalone online-store storefront
   if (location.pathname === '/store' || location.pathname === '/online-store') {
     return (
-      <OnlineStoreView
-        products={products}
-        onBackToAdmin={() => navigate('/orders')}
-        onPlaceStorefrontOrder={(newOrder) => {
-          createOrder(newOrder);
-        }}
-        lastOrderNumber={orders[0]?.orderNumber || '#21547'}
-      />
+      <Suspense fallback={<PageLoadingFallback />}>
+        <OnlineStoreView
+          products={products}
+          onBackToAdmin={() => navigate('/orders')}
+          onPlaceStorefrontOrder={(newOrder) => {
+            createOrder(newOrder);
+          }}
+          lastOrderNumber={orders[0]?.orderNumber || '#21547'}
+        />
+      </Suspense>
     );
   }
 
@@ -395,344 +513,355 @@ export default function App() {
 
         {/* Dynamic Routed Views */}
         <main className="flex-1 bg-[#F2F2F2] rounded-tl-[36px] md:rounded-tl-[40px] overflow-y-auto overflow-x-hidden scrollbar-thin">
-          <Routes>
-            <Route path="/" element={<Navigate to="/orders" replace />} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <DashboardView
-                  orders={orders}
-                  products={products}
-                  onOpenCreateOrder={() => navigate('/orders/create')}
-                  onNavigateToOrders={() => navigate('/orders')}
-                  onSelectOrder={(ord) =>
-                    navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
-                  }
-                  onOpenStorePreview={() => navigate('/store')}
-                />
-              }
-            />
-
-            <Route
-              path="/orders"
-              element={
-                <OrdersView
-                  orders={displayedOrders}
-                  onOpenCreateOrder={() => navigate('/orders/create')}
-                  onSelectOrder={(ord) =>
-                    navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
-                  }
-                  onUpdateOrderStatus={updateOrderStatus}
-                  onDeleteOrder={deleteOrder}
-                  onBulkDelete={bulkDeleteOrders}
-                  onBulkStatusUpdate={bulkUpdateOrderStatus}
-                  filterBranch={filterBranch}
-                  setFilterBranch={setFilterBranch}
-                  filterPaymentStatus={filterPaymentStatus}
-                  setFilterPaymentStatus={setFilterPaymentStatus}
-                  filterMinAmount={filterMinAmount}
-                  setFilterMinAmount={setFilterMinAmount}
-                  filterMaxAmount={filterMaxAmount}
-                  setFilterMaxAmount={setFilterMaxAmount}
-                  onResetFilters={handleResetFilters}
-                />
-              }
-            />
-
-            <Route
-              path="/orders/create"
-              element={
-                <CreateOrderPage
-                  products={products}
-                  customers={customers}
-                  lastOrderNumber={orders[0]?.orderNumber || '#21547'}
-                  onCancel={() => navigate('/orders')}
-                  onCreateOrder={(newOrder) => {
-                    createOrder(newOrder);
-                    navigate('/orders');
-                  }}
-                  onSaveDraft={(draft) => {
-                    // Save draft locally or via service
-                    navigate('/orders/drafts');
-                    showToast(`Draft ${draft.orderNumber} saved successfully`);
-                  }}
-                />
-              }
-            />
-
-            <Route
-              path="/orders/:orderId"
-              element={
-                <OrderDetailWrapper
-                  orders={orders}
-                  products={products}
-                  onUpdateOrderStatus={updateOrderStatus}
-                  onDeleteOrder={deleteOrder}
-                />
-              }
-            />
-
-            <Route
-              path="/orders/returns"
-              element={
-                <OrderReturnsView
-                  returns={returns}
-                  onApproveReturn={approveReturn}
-                  onRejectReturn={rejectReturn}
-                  onProcessRefund={processRefund}
-                  onBackToOrders={() => navigate('/orders')}
-                />
-              }
-            />
-
-            <Route
-              path="/orders/incomplete"
-              element={
-                <IncompleteOrdersView
-                  incompleteOrders={incompleteOrders}
-                  onSendRecovery={() => {
-                    showToast('SMS & WhatsApp recovery checkout link sent to customer!');
-                  }}
-                  onBackToOrders={() => navigate('/orders')}
-                />
-              }
-            />
-
-            <Route
-              path="/orders/drafts"
-              element={
-                <DraftOrdersView
-                  draftOrders={draftOrders}
-                  onConvertDraftToLive={(draft) => {
-                    convertDraftToLive(draft);
-                    navigate('/orders');
-                  }}
-                  onDeleteDraft={deleteDraft}
-                  onBackToOrders={() => navigate('/orders')}
-                />
-              }
-            />
-
-            <Route
-              path="/products"
-              element={
-                <ProductsView
-                  products={products}
-                  onAddProduct={addProduct}
-                  onUpdateStock={updateProductStock}
-                  onDeleteProduct={deleteProduct}
-                />
-              }
-            />
-
-            <Route
-              path="/purchases"
-              element={
-                <PurchasesView
-                  purchases={purchases}
-                  onOpenCreatePurchase={() => navigate('/purchases/create')}
-                  onSelectPurchase={(pur) =>
-                    navigate(`/purchases/${pur.invoiceNo.replace('#', '')}`)
-                  }
-                  onDeletePurchase={deletePurchase}
-                />
-              }
-            />
-
-            <Route
-              path="/purchases/create"
-              element={
-                <CreatePurchasePage
-                  products={products}
-                  onCancel={() => navigate('/purchases')}
-                  onSavePurchase={(newPur) => {
-                    createPurchase(newPur);
-                    navigate('/purchases');
-                  }}
-                  lastInvoiceNumber={purchases[0]?.invoiceNo || '#137180'}
-                />
-              }
-            />
-
-            <Route
-              path="/purchases/returns"
-              element={
-                <PurchasesReturnView
-                  returns={purchaseReturns}
-                  onSelectSupplier={(name) => {
-                    const found =
-                      suppliers.find(
-                        (s) =>
-                          s.name.toLowerCase().includes(name.toLowerCase()) ||
-                          (s.companyName &&
-                            s.companyName.toLowerCase().includes(name.toLowerCase()))
-                      ) || suppliers[0];
-                    if (found) {
-                      navigate(`/suppliers/${found.id}`);
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/orders" replace />} />
+              
+              <Route
+                path="/dashboard"
+                element={
+                  <DashboardView
+                    orders={orders}
+                    products={products}
+                    onOpenCreateOrder={() => navigate('/orders/create')}
+                    onNavigateToOrders={() => navigate('/orders')}
+                    onSelectOrder={(ord) =>
+                      navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
                     }
-                  }}
-                />
-              }
-            />
+                    onOpenStorePreview={() => navigate('/store')}
+                  />
+                }
+              />
 
-            <Route
-              path="/purchases/:purchaseId"
-              element={
-                <PurchaseDetailWrapper
-                  purchases={purchases}
-                  onDeletePurchase={deletePurchase}
-                  onUpdatePurchase={updatePurchase}
-                />
-              }
-            />
+              <Route
+                path="/orders"
+                element={
+                  <OrdersView
+                    orders={displayedOrders}
+                    onOpenCreateOrder={() => navigate('/orders/create')}
+                    onSelectOrder={(ord) =>
+                      navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
+                    }
+                    onUpdateOrderStatus={updateOrderStatus}
+                    onDeleteOrder={deleteOrder}
+                    onBulkDelete={bulkDeleteOrders}
+                    onBulkStatusUpdate={bulkUpdateOrderStatus}
+                    filterBranch={filterBranch}
+                    setFilterBranch={setFilterBranch}
+                    filterPaymentStatus={filterPaymentStatus}
+                    setFilterPaymentStatus={setFilterPaymentStatus}
+                    filterMinAmount={filterMinAmount}
+                    setFilterMinAmount={setFilterMinAmount}
+                    filterMaxAmount={filterMaxAmount}
+                    setFilterMaxAmount={setFilterMaxAmount}
+                    onResetFilters={handleResetFilters}
+                  />
+                }
+              />
 
-            <Route
-              path="/suppliers"
-              element={
-                <SuppliersView
-                  suppliers={suppliers}
-                  onOpenCreateSupplier={() => setIsCreateSupplierOpen(true)}
-                  onSelectSupplier={(s) => navigate(`/suppliers/${s.id}`)}
-                  onDeleteSupplier={deleteSupplier}
-                />
-              }
-            />
+              <Route
+                path="/orders/create"
+                element={
+                  <CreateOrderPage
+                    products={products}
+                    customers={customers}
+                    lastOrderNumber={orders[0]?.orderNumber || '#21547'}
+                    onCancel={() => navigate('/orders')}
+                    onCreateOrder={(newOrder) => {
+                      createOrder(newOrder);
+                      navigate('/orders');
+                    }}
+                    onSaveDraft={(draft) => {
+                      navigate('/orders/drafts');
+                      showToast(`Draft ${draft.orderNumber} saved successfully`);
+                    }}
+                  />
+                }
+              />
 
-            <Route
-              path="/suppliers/:supplierId"
-              element={
-                <SupplierDetailWrapper
-                  suppliers={suppliers}
-                  onShowToast={showToast}
-                />
-              }
-            />
+              <Route
+                path="/orders/:orderId"
+                element={
+                  <OrderDetailWrapper
+                    orders={orders}
+                    products={products}
+                    onUpdateOrderStatus={updateOrderStatus}
+                    onDeleteOrder={deleteOrder}
+                  />
+                }
+              />
 
-            <Route
-              path="/customers"
-              element={
-                <CustomersView
-                  customers={customers}
-                  onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
-                  onSelectCustomer={(c) => navigate(`/customers/${c.id}`)}
-                  onDeleteCustomer={deleteCustomer}
-                />
-              }
-            />
+              <Route
+                path="/orders/returns"
+                element={
+                  <OrderReturnsView
+                    returns={returns}
+                    onApproveReturn={approveReturn}
+                    onRejectReturn={rejectReturn}
+                    onProcessRefund={processRefund}
+                    onBackToOrders={() => navigate('/orders')}
+                  />
+                }
+              />
 
-            <Route
-              path="/customers/tags"
-              element={
-                <CustomerTagsView
-                  tags={customerTags}
-                  onOpenCreateTag={() => {
-                    setEditingTag(null);
-                    setIsCreateCustomerTagOpen(true);
-                  }}
-                  onDeleteTag={deleteCustomerTag}
-                  onEditTag={(tag) => {
-                    setEditingTag(tag);
-                    setIsCreateCustomerTagOpen(true);
-                  }}
-                />
-              }
-            />
+              <Route
+                path="/orders/incomplete"
+                element={
+                  <IncompleteOrdersView
+                    incompleteOrders={incompleteOrders}
+                    onSendRecovery={() => {
+                      showToast('SMS & WhatsApp recovery checkout link sent to customer!');
+                    }}
+                    onBackToOrders={() => navigate('/orders')}
+                  />
+                }
+              />
 
-            <Route
-              path="/customers/:customerId"
-              element={<CustomerDetailWrapper customers={customers} />}
-            />
+              <Route
+                path="/orders/drafts"
+                element={
+                  <DraftOrdersView
+                    draftOrders={draftOrders}
+                    onConvertDraftToLive={(draft) => {
+                      convertDraftToLive(draft);
+                      navigate('/orders');
+                    }}
+                    onDeleteDraft={deleteDraft}
+                    onBackToOrders={() => navigate('/orders')}
+                  />
+                }
+              />
 
-            <Route path="/tasks" element={<TasksView />} />
-            <Route path="/my-tasks" element={<Navigate to="/tasks" replace />} />
+              <Route
+                path="/products"
+                element={
+                  <ProductsView
+                    products={products}
+                    onAddProduct={addProduct}
+                    onUpdateStock={updateProductStock}
+                    onDeleteProduct={deleteProduct}
+                  />
+                }
+              />
 
-            <Route path="/accounts" element={<FinanceView orders={orders} />} />
-            <Route path="/finance" element={<Navigate to="/accounts" replace />} />
+              <Route
+                path="/purchases"
+                element={
+                  <PurchasesView
+                    purchases={purchases}
+                    onOpenCreatePurchase={() => navigate('/purchases/create')}
+                    onSelectPurchase={(pur) =>
+                      navigate(`/purchases/${pur.invoiceNo.replace('#', '')}`)
+                    }
+                    onDeletePurchase={deletePurchase}
+                  />
+                }
+              />
 
-            <Route
-              path="/reports"
-              element={
-                <div className="p-6 md:p-8 space-y-5 bg-[#F2F2F2]">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                      Reports
-                    </h1>
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
-                        <span>Filter Date</span>
-                      </button>
-                      <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
-                        <span>More Actions</span>
-                      </button>
-                      <button className="flex items-center gap-2 px-5 py-2.5 bg-[#8075FF] hover:bg-[#6e62ff] text-white text-sm font-semibold rounded-2xl shadow-sm shadow-[#8075FF]/25 cursor-pointer hover:shadow-md transition-all active:scale-98">
-                        <span>Export Analytics</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-                    <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-6 text-sm font-bold text-slate-900 border-b-2 border-purple-600 pb-1">
-                        Sales Overview & Tax Audit
+              <Route
+                path="/purchases/create"
+                element={
+                  <CreatePurchasePage
+                    products={products}
+                    onCancel={() => navigate('/purchases')}
+                    onSavePurchase={(newPur) => {
+                      createPurchase(newPur);
+                      navigate('/purchases');
+                    }}
+                    lastInvoiceNumber={purchases[0]?.invoiceNo || '#137180'}
+                  />
+                }
+              />
+
+              <Route
+                path="/purchases/returns"
+                element={
+                  <PurchasesReturnView
+                    returns={purchaseReturns}
+                    onSelectSupplier={(name) => {
+                      const found =
+                        suppliers.find(
+                          (s) =>
+                            s.name.toLowerCase().includes(name.toLowerCase()) ||
+                            (s.companyName &&
+                              s.companyName.toLowerCase().includes(name.toLowerCase()))
+                        ) || suppliers[0];
+                      if (found) {
+                        navigate(`/suppliers/${found.id}`);
+                      }
+                    }}
+                  />
+                }
+              />
+
+              <Route
+                path="/purchases/:purchaseId"
+                element={
+                  <PurchaseDetailWrapper
+                    purchases={purchases}
+                    onDeletePurchase={deletePurchase}
+                    onUpdatePurchase={updatePurchase}
+                  />
+                }
+              />
+
+              <Route
+                path="/suppliers"
+                element={
+                  <SuppliersView
+                    suppliers={suppliers}
+                    onOpenCreateSupplier={() => setIsCreateSupplierOpen(true)}
+                    onSelectSupplier={(s) => navigate(`/suppliers/${s.id}`)}
+                    onDeleteSupplier={deleteSupplier}
+                  />
+                }
+              />
+
+              <Route
+                path="/suppliers/:supplierId"
+                element={
+                  <SupplierDetailWrapper
+                    suppliers={suppliers}
+                    onShowToast={showToast}
+                  />
+                }
+              />
+
+              <Route
+                path="/customers"
+                element={
+                  <CustomersView
+                    customers={customers}
+                    onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
+                    onSelectCustomer={(c) => navigate(`/customers/${c.id}`)}
+                    onDeleteCustomer={deleteCustomer}
+                  />
+                }
+              />
+
+              <Route
+                path="/customers/tags"
+                element={
+                  <CustomerTagsView
+                    tags={customerTags}
+                    onOpenCreateTag={() => {
+                      setEditingTag(null);
+                      setIsCreateCustomerTagOpen(true);
+                    }}
+                    onDeleteTag={deleteCustomerTag}
+                    onEditTag={(tag) => {
+                      setEditingTag(tag);
+                      setIsCreateCustomerTagOpen(true);
+                    }}
+                  />
+                }
+              />
+
+              <Route
+                path="/customers/:customerId"
+                element={<CustomerDetailWrapper customers={customers} />}
+              />
+
+              <Route path="/tasks" element={<TasksView />} />
+              <Route path="/my-tasks" element={<Navigate to="/tasks" replace />} />
+
+              <Route path="/accounts" element={<FinanceView orders={orders} />} />
+              <Route path="/finance" element={<Navigate to="/accounts" replace />} />
+
+              <Route
+                path="/reports"
+                element={
+                  <div className="p-6 md:p-8 space-y-5 bg-[#F2F2F2]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        Reports
+                      </h1>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
+                          <span>Filter Date</span>
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-xl border border-slate-200/90 shadow-2xs cursor-pointer">
+                          <span>More Actions</span>
+                        </button>
+                        <button className="flex items-center gap-2 px-5 py-2.5 bg-[#8075FF] hover:bg-[#6e62ff] text-white text-sm font-semibold rounded-2xl shadow-sm shadow-[#8075FF]/25 cursor-pointer hover:shadow-md transition-all active:scale-98">
+                          <span>Export Analytics</span>
+                        </button>
                       </div>
                     </div>
-                    <div className="p-8 text-center text-xs text-slate-400">
-                      Exportable sales performance, sales by branch, customer lifetime
-                      value, and tax audit reports.
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+                      <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-6 text-sm font-bold text-slate-900 border-b-2 border-purple-600 pb-1">
+                          Sales Overview & Tax Audit
+                        </div>
+                      </div>
+                      <div className="p-8 text-center text-xs text-slate-400">
+                        Exportable sales performance, sales by branch, customer lifetime
+                        value, and tax audit reports.
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-            />
+                }
+              />
 
-            <Route path="/settings" element={<SettingsView />} />
-            <Route path="/online-store" element={<Navigate to="/store" replace />} />
-            <Route path="*" element={<Navigate to="/orders" replace />} />
-          </Routes>
+              <Route path="/settings" element={<SettingsView />} />
+              <Route path="/online-store" element={<Navigate to="/store" replace />} />
+              <Route path="*" element={<Navigate to="/orders" replace />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
 
       {/* Modals & Slide-overs */}
-      <CreateOrderModal
-        isOpen={isCreateOrderOpen}
-        onClose={() => setIsCreateOrderOpen(false)}
-        products={products}
-        onCreateOrder={createOrder}
-        lastOrderNumber={orders[0]?.orderNumber || '#21547'}
-      />
+      <Suspense fallback={null}>
+        {isCreateOrderOpen && (
+          <CreateOrderModal
+            isOpen={isCreateOrderOpen}
+            onClose={() => setIsCreateOrderOpen(false)}
+            products={products}
+            onCreateOrder={createOrder}
+            lastOrderNumber={orders[0]?.orderNumber || '#21547'}
+          />
+        )}
 
-      <CreateSupplierModal
-        isOpen={isCreateSupplierOpen}
-        onClose={() => setIsCreateSupplierOpen(false)}
-        onCreateSupplier={(newSup) => {
-          createSupplier(newSup);
-        }}
-      />
+        {isCreateSupplierOpen && (
+          <CreateSupplierModal
+            isOpen={isCreateSupplierOpen}
+            onClose={() => setIsCreateSupplierOpen(false)}
+            onCreateSupplier={(newSup) => {
+              createSupplier(newSup);
+            }}
+          />
+        )}
 
-      <CreateCustomerModal
-        isOpen={isCreateCustomerOpen}
-        onClose={() => setIsCreateCustomerOpen(false)}
-        onCreateCustomer={(newCust) => {
-          createCustomer(newCust);
-        }}
-      />
+        {isCreateCustomerOpen && (
+          <CreateCustomerModal
+            isOpen={isCreateCustomerOpen}
+            onClose={() => setIsCreateCustomerOpen(false)}
+            onCreateCustomer={(newCust) => {
+              createCustomer(newCust);
+            }}
+          />
+        )}
 
-      <CreateCustomerTagModal
-        isOpen={isCreateCustomerTagOpen}
-        onClose={() => {
-          setIsCreateCustomerTagOpen(false);
-          setEditingTag(null);
-        }}
-        onCreateTag={(tag) => {
-          if (editingTag) {
-            updateCustomerTag(tag.id, tag);
-          } else {
-            createCustomerTag(tag);
-          }
-          setEditingTag(null);
-        }}
-        editingTag={editingTag}
-      />
+        {isCreateCustomerTagOpen && (
+          <CreateCustomerTagModal
+            isOpen={isCreateCustomerTagOpen}
+            onClose={() => {
+              setIsCreateCustomerTagOpen(false);
+              setEditingTag(null);
+            }}
+            onCreateTag={(tag) => {
+              if (editingTag) {
+                updateCustomerTag(tag.id, tag);
+              } else {
+                createCustomerTag(tag);
+              }
+              setEditingTag(null);
+            }}
+            editingTag={editingTag}
+          />
+        )}
+      </Suspense>
 
       <SupportModal
         isOpen={isSupportOpen}
