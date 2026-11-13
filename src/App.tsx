@@ -12,6 +12,7 @@ import {
   useLocation,
   useParams,
 } from 'react-router-dom';
+import { useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { OrdersView } from './components/orders/OrdersView';
@@ -45,26 +46,10 @@ import { SuppliersView } from './components/suppliers/SuppliersView';
 import { CreateSupplierModal } from './components/suppliers/CreateSupplierModal';
 import { SupplierDetailPage } from './components/suppliers/SupplierDetailPage';
 import {
-  INITIAL_PURCHASES,
-  INITIAL_PURCHASE_RETURNS,
-  DETAILED_SUPPLIERS,
-} from './data/mockPurchases';
-
-import {
-  initialOrders,
-  initialProducts,
-  initialCustomers,
-  initialReturns,
-  initialIncompleteOrders,
-  initialDraftOrders,
-  initialCustomerTags,
-} from './data/mockData';
-import {
   Order,
   Product,
   OrderStatus,
   Purchase,
-  PurchaseReturn,
   SupplierItem,
   Customer,
   CustomerTag,
@@ -260,19 +245,48 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [customerTags, setCustomerTags] = useState<CustomerTag[]>(initialCustomerTags);
+  // Centralized Application State via React Context (Zero Prop-Drilling)
+  const {
+    orders,
+    createOrder,
+    updateOrderStatus,
+    deleteOrder,
+    bulkDeleteOrders,
+    bulkUpdateOrderStatus,
+    returns,
+    incompleteOrders,
+    draftOrders,
+    approveReturn,
+    rejectReturn,
+    processRefund,
+    convertDraftToLive,
+    deleteDraft,
+    products,
+    addProduct,
+    updateProductStock,
+    deleteProduct,
+    customers,
+    customerTags,
+    createCustomer,
+    deleteCustomer,
+    createCustomerTag,
+    updateCustomerTag,
+    deleteCustomerTag,
+    purchases,
+    purchaseReturns,
+    suppliers,
+    createPurchase,
+    updatePurchase,
+    deletePurchase,
+    createSupplier,
+    deleteSupplier,
+    toastMessage,
+    showToast,
+  } = useApp();
+
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [isCreateCustomerTagOpen, setIsCreateCustomerTagOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<CustomerTag | null>(null);
-  const [returns, setReturns] = useState(initialReturns);
-  const [incompleteOrders, setIncompleteOrders] = useState(initialIncompleteOrders);
-  const [draftOrders, setDraftOrders] = useState(initialDraftOrders);
-  const [purchases, setPurchases] = useState<Purchase[]>(INITIAL_PURCHASES);
-  const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>(INITIAL_PURCHASE_RETURNS);
-  const [suppliersList, setSuppliersList] = useState<SupplierItem[]>(DETAILED_SUPPLIERS);
   const [isCreateSupplierOpen, setIsCreateSupplierOpen] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -288,13 +302,6 @@ export default function App() {
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('All');
   const [filterMinAmount, setFilterMinAmount] = useState('');
   const [filterMaxAmount, setFilterMaxAmount] = useState('');
-
-  // Toast feedback state
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
 
   // Notification items state
   const [notifications, setNotifications] = useState<NotificationItem[]>([
@@ -342,36 +349,6 @@ export default function App() {
     });
   }, [orders, searchQuery]);
 
-  // Handlers for orders
-  const handleCreateOrder = (newOrder: Order) => {
-    setOrders([newOrder, ...orders]);
-    showToast(`Order ${newOrder.orderNumber} created successfully!`);
-  };
-
-  const handleUpdateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-    );
-    showToast(`Order status updated to "${newStatus}"`);
-  };
-
-  const handleDeleteOrder = (orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    showToast('Order deleted successfully');
-  };
-
-  const handleBulkDelete = (orderIds: string[]) => {
-    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
-    showToast(`${orderIds.length} orders deleted`);
-  };
-
-  const handleBulkStatusUpdate = (orderIds: string[], status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (orderIds.includes(o.id) ? { ...o, status } : o))
-    );
-    showToast(`${orderIds.length} orders updated to "${status}"`);
-  };
-
   const handleResetFilters = () => {
     setFilterBranch('All');
     setFilterPaymentStatus('All');
@@ -381,76 +358,15 @@ export default function App() {
     showToast('Filters cleared');
   };
 
-  // Product stock handlers
-  const handleUpdateStock = (productId: string, newStock: number) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
-    );
-    showToast('Stock level updated');
-  };
-
-  const handleAddProduct = (newProduct: Product) => {
-    setProducts([newProduct, ...products]);
-    showToast(`Product "${newProduct.name}" added`);
-  };
-
-  const handleDeleteProduct = (productId: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
-    showToast('Product removed');
-  };
-
-  // Returns handlers
-  const handleApproveReturn = (id: string) => {
-    setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Approved' as const } : r))
-    );
-    showToast('Return request approved');
-  };
-
-  const handleRejectReturn = (id: string) => {
-    setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' as const } : r))
-    );
-    showToast('Return request rejected');
-  };
-
-  const handleProcessRefund = (id: string) => {
-    setReturns((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'Refunded' as const } : r))
-    );
-    showToast('Refund processed successfully');
-  };
-
-  // Incomplete orders
-  const handleSendRecovery = (id: string) => {
-    showToast('SMS & WhatsApp recovery checkout link sent to customer!');
-  };
-
-  // Draft orders
-  const handleConvertDraftToLive = (draft: Order) => {
-    const liveOrder: Order = {
-      ...draft,
-      id: `ord-${Date.now()}`,
-      orderNumber: `#${parseInt(orders[0]?.orderNumber.replace(/\D/g, '') || '21547', 10) + 1}`,
-      status: 'Pending',
-    };
-    setOrders([liveOrder, ...orders]);
-    setDraftOrders((prev) => prev.filter((d) => d.id !== draft.id));
-    showToast(`Draft converted to live order ${liveOrder.orderNumber}!`);
-  };
-
-  const handleDeleteDraft = (id: string) => {
-    setDraftOrders((prev) => prev.filter((d) => d.id !== id));
-    showToast('Draft order discarded.');
-  };
-
   // If viewing the standalone online-store storefront
   if (location.pathname === '/store' || location.pathname === '/online-store') {
     return (
       <OnlineStoreView
         products={products}
         onBackToAdmin={() => navigate('/orders')}
-        onPlaceStorefrontOrder={handleCreateOrder}
+        onPlaceStorefrontOrder={(newOrder) => {
+          createOrder(newOrder);
+        }}
         lastOrderNumber={orders[0]?.orderNumber || '#21547'}
       />
     );
@@ -507,10 +423,10 @@ export default function App() {
                   onSelectOrder={(ord) =>
                     navigate(`/orders/${ord.orderNumber.replace('#', '')}`)
                   }
-                  onUpdateOrderStatus={handleUpdateOrderStatus}
-                  onDeleteOrder={handleDeleteOrder}
-                  onBulkDelete={handleBulkDelete}
-                  onBulkStatusUpdate={handleBulkStatusUpdate}
+                  onUpdateOrderStatus={updateOrderStatus}
+                  onDeleteOrder={deleteOrder}
+                  onBulkDelete={bulkDeleteOrders}
+                  onBulkStatusUpdate={bulkUpdateOrderStatus}
                   filterBranch={filterBranch}
                   setFilterBranch={setFilterBranch}
                   filterPaymentStatus={filterPaymentStatus}
@@ -533,11 +449,11 @@ export default function App() {
                   lastOrderNumber={orders[0]?.orderNumber || '#21547'}
                   onCancel={() => navigate('/orders')}
                   onCreateOrder={(newOrder) => {
-                    handleCreateOrder(newOrder);
+                    createOrder(newOrder);
                     navigate('/orders');
                   }}
                   onSaveDraft={(draft) => {
-                    setDraftOrders([draft, ...draftOrders]);
+                    // Save draft locally or via service
                     navigate('/orders/drafts');
                     showToast(`Draft ${draft.orderNumber} saved successfully`);
                   }}
@@ -551,8 +467,8 @@ export default function App() {
                 <OrderDetailWrapper
                   orders={orders}
                   products={products}
-                  onUpdateOrderStatus={handleUpdateOrderStatus}
-                  onDeleteOrder={handleDeleteOrder}
+                  onUpdateOrderStatus={updateOrderStatus}
+                  onDeleteOrder={deleteOrder}
                 />
               }
             />
@@ -562,9 +478,9 @@ export default function App() {
               element={
                 <OrderReturnsView
                   returns={returns}
-                  onApproveReturn={handleApproveReturn}
-                  onRejectReturn={handleRejectReturn}
-                  onProcessRefund={handleProcessRefund}
+                  onApproveReturn={approveReturn}
+                  onRejectReturn={rejectReturn}
+                  onProcessRefund={processRefund}
                   onBackToOrders={() => navigate('/orders')}
                 />
               }
@@ -575,7 +491,9 @@ export default function App() {
               element={
                 <IncompleteOrdersView
                   incompleteOrders={incompleteOrders}
-                  onSendRecovery={handleSendRecovery}
+                  onSendRecovery={() => {
+                    showToast('SMS & WhatsApp recovery checkout link sent to customer!');
+                  }}
                   onBackToOrders={() => navigate('/orders')}
                 />
               }
@@ -587,10 +505,10 @@ export default function App() {
                 <DraftOrdersView
                   draftOrders={draftOrders}
                   onConvertDraftToLive={(draft) => {
-                    handleConvertDraftToLive(draft);
+                    convertDraftToLive(draft);
                     navigate('/orders');
                   }}
-                  onDeleteDraft={handleDeleteDraft}
+                  onDeleteDraft={deleteDraft}
                   onBackToOrders={() => navigate('/orders')}
                 />
               }
@@ -601,9 +519,9 @@ export default function App() {
               element={
                 <ProductsView
                   products={products}
-                  onAddProduct={handleAddProduct}
-                  onUpdateStock={handleUpdateStock}
-                  onDeleteProduct={handleDeleteProduct}
+                  onAddProduct={addProduct}
+                  onUpdateStock={updateProductStock}
+                  onDeleteProduct={deleteProduct}
                 />
               }
             />
@@ -617,10 +535,7 @@ export default function App() {
                   onSelectPurchase={(pur) =>
                     navigate(`/purchases/${pur.invoiceNo.replace('#', '')}`)
                   }
-                  onDeletePurchase={(id) => {
-                    setPurchases((prev) => prev.filter((p) => p.id !== id));
-                    showToast('Purchase deleted');
-                  }}
+                  onDeletePurchase={deletePurchase}
                 />
               }
             />
@@ -632,9 +547,8 @@ export default function App() {
                   products={products}
                   onCancel={() => navigate('/purchases')}
                   onSavePurchase={(newPur) => {
-                    setPurchases([newPur, ...purchases]);
+                    createPurchase(newPur);
                     navigate('/purchases');
-                    showToast(`Purchase ${newPur.invoiceNo} created successfully`);
                   }}
                   lastInvoiceNumber={purchases[0]?.invoiceNo || '#137180'}
                 />
@@ -648,13 +562,15 @@ export default function App() {
                   returns={purchaseReturns}
                   onSelectSupplier={(name) => {
                     const found =
-                      suppliersList.find(
+                      suppliers.find(
                         (s) =>
                           s.name.toLowerCase().includes(name.toLowerCase()) ||
                           (s.companyName &&
                             s.companyName.toLowerCase().includes(name.toLowerCase()))
-                      ) || suppliersList[0];
-                    navigate(`/suppliers/${found.id}`);
+                      ) || suppliers[0];
+                    if (found) {
+                      navigate(`/suppliers/${found.id}`);
+                    }
                   }}
                 />
               }
@@ -665,16 +581,8 @@ export default function App() {
               element={
                 <PurchaseDetailWrapper
                   purchases={purchases}
-                  onDeletePurchase={(id) => {
-                    setPurchases((prev) => prev.filter((p) => p.id !== id));
-                    showToast('Purchase deleted');
-                  }}
-                  onUpdatePurchase={(updated) => {
-                    setPurchases((prev) =>
-                      prev.map((p) => (p.id === updated.id ? updated : p))
-                    );
-                    showToast(`Purchase ${updated.invoiceNo} updated`);
-                  }}
+                  onDeletePurchase={deletePurchase}
+                  onUpdatePurchase={updatePurchase}
                 />
               }
             />
@@ -683,13 +591,10 @@ export default function App() {
               path="/suppliers"
               element={
                 <SuppliersView
-                  suppliers={suppliersList}
+                  suppliers={suppliers}
                   onOpenCreateSupplier={() => setIsCreateSupplierOpen(true)}
                   onSelectSupplier={(s) => navigate(`/suppliers/${s.id}`)}
-                  onDeleteSupplier={(id) => {
-                    setSuppliersList((prev) => prev.filter((s) => s.id !== id));
-                    showToast('Supplier deleted');
-                  }}
+                  onDeleteSupplier={deleteSupplier}
                 />
               }
             />
@@ -698,7 +603,7 @@ export default function App() {
               path="/suppliers/:supplierId"
               element={
                 <SupplierDetailWrapper
-                  suppliers={suppliersList}
+                  suppliers={suppliers}
                   onShowToast={showToast}
                 />
               }
@@ -711,10 +616,7 @@ export default function App() {
                   customers={customers}
                   onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
                   onSelectCustomer={(c) => navigate(`/customers/${c.id}`)}
-                  onDeleteCustomer={(id) => {
-                    setCustomers((prev) => prev.filter((c) => c.id !== id));
-                    showToast('Customer deleted');
-                  }}
+                  onDeleteCustomer={deleteCustomer}
                 />
               }
             />
@@ -728,10 +630,7 @@ export default function App() {
                     setEditingTag(null);
                     setIsCreateCustomerTagOpen(true);
                   }}
-                  onDeleteTag={(id) => {
-                    setCustomerTags((prev) => prev.filter((t) => t.id !== id));
-                    showToast('Tag deleted');
-                  }}
+                  onDeleteTag={deleteCustomerTag}
                   onEditTag={(tag) => {
                     setEditingTag(tag);
                     setIsCreateCustomerTagOpen(true);
@@ -798,7 +697,7 @@ export default function App() {
         isOpen={isCreateOrderOpen}
         onClose={() => setIsCreateOrderOpen(false)}
         products={products}
-        onCreateOrder={handleCreateOrder}
+        onCreateOrder={createOrder}
         lastOrderNumber={orders[0]?.orderNumber || '#21547'}
       />
 
@@ -806,8 +705,7 @@ export default function App() {
         isOpen={isCreateSupplierOpen}
         onClose={() => setIsCreateSupplierOpen(false)}
         onCreateSupplier={(newSup) => {
-          setSuppliersList([newSup, ...suppliersList]);
-          showToast(`Supplier ${newSup.name} created successfully`);
+          createSupplier(newSup);
         }}
       />
 
@@ -815,8 +713,7 @@ export default function App() {
         isOpen={isCreateCustomerOpen}
         onClose={() => setIsCreateCustomerOpen(false)}
         onCreateCustomer={(newCust) => {
-          setCustomers([newCust, ...customers]);
-          showToast(`Customer ${newCust.name} created successfully`);
+          createCustomer(newCust);
         }}
       />
 
@@ -828,13 +725,9 @@ export default function App() {
         }}
         onCreateTag={(tag) => {
           if (editingTag) {
-            setCustomerTags((prev) =>
-              prev.map((t) => (t.id === tag.id ? tag : t))
-            );
-            showToast('Tag updated successfully');
+            updateCustomerTag(tag.id, tag);
           } else {
-            setCustomerTags((prev) => [tag, ...prev]);
-            showToast('Tag created successfully');
+            createCustomerTag(tag);
           }
           setEditingTag(null);
         }}

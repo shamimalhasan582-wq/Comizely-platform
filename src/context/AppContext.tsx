@@ -33,6 +33,16 @@ interface AppContextType {
   bulkDeleteOrders: (ids: string[]) => Promise<void>;
   bulkUpdateOrderStatus: (ids: string[], status: OrderStatus) => Promise<void>;
 
+  // Sub-orders (returns, incomplete, drafts)
+  returns: any[];
+  incompleteOrders: any[];
+  draftOrders: Order[];
+  approveReturn: (id: string) => void;
+  rejectReturn: (id: string) => void;
+  processRefund: (id: string) => void;
+  convertDraftToLive: (draft: Order) => void;
+  deleteDraft: (id: string) => void;
+
   // Products
   products: Product[];
   loadingProducts: boolean;
@@ -56,6 +66,7 @@ interface AppContextType {
   suppliers: SupplierItem[];
   loadingPurchases: boolean;
   createPurchase: (purchase: Purchase) => Promise<Purchase>;
+  updatePurchase: (purchase: Purchase) => void;
   deletePurchase: (id: string) => Promise<void>;
   createSupplier: (supplier: SupplierItem) => Promise<SupplierItem>;
   deleteSupplier: (id: string) => Promise<void>;
@@ -71,6 +82,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Sub-orders state
+  const [returns, setReturns] = useState<any[]>([]);
+  const [incompleteOrders, setIncompleteOrders] = useState<any[]>([]);
+  const [draftOrders, setDraftOrders] = useState<Order[]>([]);
 
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
@@ -103,14 +119,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const [
           fetchedOrders,
+          fetchedReturns,
+          fetchedIncomplete,
+          fetchedDrafts,
           fetchedProducts,
           fetchedCustomers,
           fetchedTags,
           fetchedPurchases,
-          fetchedReturns,
+          fetchedPurchaseReturns,
           fetchedSuppliers,
         ] = await Promise.all([
           orderService.getOrders(),
+          orderService.getReturns(),
+          orderService.getIncompleteOrders(),
+          orderService.getDraftOrders(),
           productService.getProducts(),
           customerService.getCustomers(),
           customerService.getTags(),
@@ -121,11 +143,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (isMounted) {
           setOrders(fetchedOrders);
+          setReturns(fetchedReturns);
+          setIncompleteOrders(fetchedIncomplete);
+          setDraftOrders(fetchedDrafts);
           setProducts(fetchedProducts);
           setCustomers(fetchedCustomers);
           setCustomerTags(fetchedTags);
           setPurchases(fetchedPurchases);
-          setPurchaseReturns(fetchedReturns);
+          setPurchaseReturns(fetchedPurchaseReturns);
           setSuppliers(fetchedSuppliers);
         }
       } catch (err) {
@@ -199,6 +224,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     },
     [showToast]
   );
+
+  // Return actions
+  const approveReturn = useCallback((id: string) => {
+    setReturns((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'Approved' } : r))
+    );
+    showToast('Return request approved');
+  }, [showToast]);
+
+  const rejectReturn = useCallback((id: string) => {
+    setReturns((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' } : r))
+    );
+    showToast('Return request rejected');
+  }, [showToast]);
+
+  const processRefund = useCallback((id: string) => {
+    setReturns((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'Refunded' } : r))
+    );
+    showToast('Refund processed successfully');
+  }, [showToast]);
+
+  // Draft actions
+  const convertDraftToLive = useCallback((draft: Order) => {
+    const liveOrder: Order = {
+      ...draft,
+      id: `ord-${Date.now()}`,
+      orderNumber: `#${Date.now().toString().slice(-5)}`,
+      status: 'Pending',
+    };
+    setOrders((prev) => [liveOrder, ...prev]);
+    setDraftOrders((prev) => prev.filter((d) => d.id !== draft.id));
+    showToast(`Draft converted to live order ${liveOrder.orderNumber}!`);
+  }, [showToast]);
+
+  const deleteDraft = useCallback((id: string) => {
+    setDraftOrders((prev) => prev.filter((d) => d.id !== id));
+    showToast('Draft order discarded.');
+  }, [showToast]);
 
   // Products Actions
   const addProduct = useCallback(
@@ -290,6 +355,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     [showToast]
   );
 
+  const updatePurchase = useCallback(
+    (updated: Purchase) => {
+      setPurchases((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p))
+      );
+      showToast(`Purchase ${updated.invoiceNo} updated`);
+    },
+    [showToast]
+  );
+
   const deletePurchase = useCallback(
     async (id: string) => {
       await purchaseService.deletePurchase(id);
@@ -327,6 +402,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     bulkDeleteOrders,
     bulkUpdateOrderStatus,
 
+    returns,
+    incompleteOrders,
+    draftOrders,
+    approveReturn,
+    rejectReturn,
+    processRefund,
+    convertDraftToLive,
+    deleteDraft,
+
     products,
     loadingProducts,
     addProduct,
@@ -347,6 +431,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     suppliers,
     loadingPurchases,
     createPurchase,
+    updatePurchase,
     deletePurchase,
     createSupplier,
     deleteSupplier,
@@ -365,4 +450,3 @@ export const useApp = () => {
   }
   return context;
 };
-
